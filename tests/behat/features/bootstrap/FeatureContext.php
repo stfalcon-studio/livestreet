@@ -18,6 +18,8 @@ require_once("tests/LoadFixtures.php");
  */
 class FeatureContext extends MinkContext
 {
+    
+    protected static $fixturesLoader = null;
 
     /**
      * Initializes context.
@@ -30,11 +32,21 @@ class FeatureContext extends MinkContext
         
     }
     
+    protected static function getFixturesLoader()
+    {
+        if (is_null(self::$fixturesLoader)) {
+            self::$fixturesLoader = new LoadFixtures();
+        }
+        
+        return self::$fixturesLoader;
+    }
+
     /**
      *@BeforeSuite
      */
     public static function prepare($event){
-        $fixturesLoader = new LoadFixtures();
+        
+        $fixturesLoader = self::getFixturesLoader();
         
         $fixturesLoader->purgeDB();
         
@@ -42,28 +54,15 @@ class FeatureContext extends MinkContext
         
     }
     
-    
-    
-//    /**
-//     * @Then /^I should see Status code homepage$/
-//     */
-//    public function iShouldSeeStatusCodeHomepage()
-//    {
-//        $driver = new \Behat\Mink\Driver\GoutteDriver();
-//        // init session:
-//        $session = new \Behat\Mink\Session($driver);
-//        // start session:
-//        $session->start();
-//        
-//        // open some page in browser:
-//        $session->visit("http://livestreet_101.ru.work/");
-//
-//        // get the current page URL:
-//        echo "Page   => " . $session->getCurrentUrl()."\n";
-//
-//        // get the response status code:
-//        echo "Status => " . $session->getStatusCode()."\n";
-//    }
+    /**
+     * @Given /^I load fixtures for plugin "([^"]*)"$/
+     */
+    public function iLoadFixturesForPlugin($plugin)
+    {
+        $fixturesLoader = $this->getFixturesLoader();
+        
+        $fixturesLoader->loadPlugin($plugin);
+    }
     
 
 }

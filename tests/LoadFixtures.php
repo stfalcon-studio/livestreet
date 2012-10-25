@@ -1,10 +1,5 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * Description of LoadFixtures
  *
@@ -108,6 +103,19 @@ class LoadFixtures
                 $this->aReferences = array_merge($this->aReferences, $aFixtureReference);
             }
         }
+    }
+    
+    public function loadPlugin($plugin){
+        
+        $sPath = Config::Get('path.root.server').'/plugins/' . $plugin . '/tests/fixtures';
+        if (!is_dir($sPath)) {
+            throw new InvalidArgumentException('Plugin not found by LS directory: ' . $sPath, 10);
+        }
+        
+        $this->sDirFixtures = $sPath;
+        
+        $this->loadFixtures();
+        
     }
 
 }
