@@ -9,7 +9,7 @@ class UserFixtures extends AbstractFixtures
     {
         return 0;
     }
-// Создание фикстуры пользователя
+// Создание пользователя
     public function load()
     {
 
