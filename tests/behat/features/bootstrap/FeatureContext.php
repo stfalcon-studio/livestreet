@@ -12,6 +12,7 @@ use Behat\Gherkin\Node\PyStringNode,
 $sDirRoot = dirname(realpath((dirname(__FILE__)) . "/../../../"));
 set_include_path(get_include_path().PATH_SEPARATOR.$sDirRoot);
 
+// Получаем объект Fixtures
 require_once("tests/LoadFixtures.php");
 
 /**
@@ -22,6 +23,9 @@ class FeatureContext extends MinkContext
 
     protected static $fixturesLoader = null;
 
+    /**
+     *  Подгружаэм  FixturesLoader
+     */
     protected static function getFixturesLoader()
     {
         if (is_null(self::$fixturesLoader)) {
@@ -41,6 +45,8 @@ class FeatureContext extends MinkContext
     }
 
     /**
+     * Загрузка фикстур с плагинов 
+     *
      * @Given /^I load fixtures for plugin "([^"]*)"$/
      */
     public function iLoadFixturesForPlugin($plugin)
