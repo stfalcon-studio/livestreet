@@ -1,10 +1,5 @@
 <?php
 
-/**
- * AbstractFixtures
- *
- * @author user
- */
 abstract class AbstractFixtures
 {
     protected $oEngine;
@@ -22,11 +17,25 @@ abstract class AbstractFixtures
         $this->aReferences = $aReferences;
     }
 
+    /**
+     *
+     * @param type $name
+     * @param type $data
+     *
+     * Добавление фикстур 
+     */
     public function addReference($name, $data)
     {
         $this->aReferences[$name] = $data;
     }
 
+    /**
+     *
+     * @param type $name
+     * @return type
+     * Вызов фикстур по их названиию
+     *
+     */
     public function getReference($name)
     {
         if (isset($this->aReferences[$name])) {
@@ -35,6 +44,7 @@ abstract class AbstractFixtures
 
         throw new Exception("Fixture reference \"$name\" is not exist");
     }
+
 
     public function getReferences()
     {
