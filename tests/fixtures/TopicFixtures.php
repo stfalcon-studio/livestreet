@@ -4,12 +4,12 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 
 class TopicFixtures extends AbstractFixtures
 {
-
+//  порядок создания фикстур
     public static function getOrder()
     {
         return 2;
     }
-
+// Определение параметров для создания фикстур топиков
     public function load()
     {
         $oUserGolfer = $this->getReference('user-golfer');
@@ -35,6 +35,16 @@ class TopicFixtures extends AbstractFixtures
         $this->addReference('topic-sony', $oTopicSony);
     }
 
+    /**
+     *
+     * @param type $iBlogId
+     * @param type $iUserId
+     * @param type $sTitle
+     * @param type $sText
+     * @param type $sTags
+     *
+     * Создание топиков
+     */
     private function _createTopic($iBlogId, $iUserId, $sTitle, $sText, $sTags)
     {
         $oTopic = Engine::GetEntity('Topic');
