@@ -4,14 +4,15 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 
 class UserFixtures extends AbstractFixtures
 {
-
+//  порядок создания фикстур
     public static function getOrder()
     {
         return 0;
     }
-
+// Создание фикстуры пользователя
     public function load()
     {
+
         $oUserGolfer = Engine::GetEntity('User');
         $oUserGolfer->setLogin('golfer');
         $oUserGolfer->setPassword(md5('qwerty'));
