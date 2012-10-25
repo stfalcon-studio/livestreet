@@ -4,12 +4,11 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 
 class UserFixtures extends AbstractFixtures
 {
-//  порядок создания фикстур
     public static function getOrder()
     {
         return 0;
     }
-// Создание пользователя
+
     public function load()
     {
 

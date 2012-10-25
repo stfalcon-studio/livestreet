@@ -1,28 +1,40 @@
 <?php
 
+/**
+ * Abstract class for LiveStreet fixtures
+ */
 abstract class AbstractFixtures
 {
+
+    /**
+     * @var Engine
+     */
     protected $oEngine;
 
+    /**
+     * Objects references
+     *
+     * @var array
+     */
     private $aReferences = array();
 
     /**
-     *
-     * @param type $oEngine
-     * @param type $aReferences
+     * @param Engine $oEngine
+     * @param array $aReferences
+     * @return void
      */
-    public function __construct($oEngine, $aReferences)
+    public function __construct(Engine $oEngine, $aReferences)
     {
         $this->oEngine = $oEngine;
         $this->aReferences = $aReferences;
     }
 
     /**
+     * Add reference
      *
-     * @param type $name
-     * @param type $data
-     *
-     * Добавление фикстур 
+     * @param string $name
+     * @param array $data
+     * @return void
      */
     public function addReference($name, $data)
     {
@@ -30,29 +42,46 @@ abstract class AbstractFixtures
     }
 
     /**
+     * Get reference by key
      *
-     * @param type $name
-     * @return type
-     * Вызов фикстур по их названиию
-     *
+     * @param string $key
+     * @throws Exception if reference is not exist
+     * @return array aReferences
+     * @return void
      */
-    public function getReference($name)
+    public function getReference($key)
     {
-        if (isset($this->aReferences[$name])) {
-            return $this->aReferences[$name];
+        if (isset($this->aReferences[$key])) {
+            return $this->aReferences[$key];
         }
 
-        throw new Exception("Fixture reference \"$name\" is not exist");
+        throw new Exception("Fixture reference \"$key\" is not exist");
     }
 
-
+    /**
+     * Get all references
+     *
+     * @return array aReferences
+     */
     public function getReferences()
     {
         return $this->aReferences;
     }
 
+    /**
+     * Creating entities and saving them to DB
+     *
+     * @return void
+     */
     abstract public function load();
 
-    abstract public static function getOrder();
+    /**
+     * Get order numberfor fixture
+     *
+     * @return int
+     */
+    public static function getOrder() {
+        return 0;
+    }
 }
 

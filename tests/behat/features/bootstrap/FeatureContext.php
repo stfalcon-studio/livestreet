@@ -8,15 +8,13 @@ use Behat\Behat\Context\ClosuredContextInterface,
 use Behat\Gherkin\Node\PyStringNode,
     Behat\Gherkin\Node\TableNode;
 
-
 $sDirRoot = dirname(realpath((dirname(__FILE__)) . "/../../../"));
 set_include_path(get_include_path().PATH_SEPARATOR.$sDirRoot);
 
-// Получаем объект Fixtures
 require_once("tests/LoadFixtures.php");
 
 /**
- * Features context.
+ * LiveStreet custom feature context
  */
 class FeatureContext extends MinkContext
 {
@@ -24,7 +22,8 @@ class FeatureContext extends MinkContext
     protected static $fixturesLoader = null;
 
     /**
-     *  Подгружаэм  FixturesLoader
+     * Get fixtures loader
+     * @return LoadFixtures
      */
     protected static function getFixturesLoader()
     {
@@ -36,7 +35,9 @@ class FeatureContext extends MinkContext
     }
 
     /**
-     *@BeforeSuite
+     * Purge DB and load fixtures before ever tested run
+     *
+     * @BeforeSuite
      */
     public static function prepare($event){
         $fixturesLoader = self::getFixturesLoader();
@@ -45,14 +46,14 @@ class FeatureContext extends MinkContext
     }
 
     /**
-     * Загрузка фикстур с плагинов 
+     * Loading fixture for plugin
      *
      * @Given /^I load fixtures for plugin "([^"]*)"$/
      */
     public function iLoadFixturesForPlugin($plugin)
     {
         $fixturesLoader = $this->getFixturesLoader();
-        $fixturesLoader->loadPlugin($plugin);
+        $fixturesLoader->loadPluginFixtures($plugin);
     }
 
 }

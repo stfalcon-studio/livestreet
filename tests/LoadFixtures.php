@@ -1,38 +1,51 @@
 <?php
-// Получаем объект конфигурации
+
 require_once("config/loader.php");
 require_once("engine/classes/Engine.class.php");
 
+/**
+ * Class for load fixtures
+ */
 class LoadFixtures
 {
 
+    /**
+     * Main objects references array
+     *
+     * @var array $aReferences
+     */
     private $aReferences = array();
+
+    /**
+    * @var Engine
+    */
     private $oEngine;
+
+    /**
+     * The directory of the fixtures for tests
+     *
+     * @var string $sDirFixtures
+     */
     private $sDirFixtures;
 
     public function __construct() {
-//        загружаем конфигурацию для тестов
         if (file_exists(Config::Get('path.root.server') . '/config/config.test.php')) {
             Config::LoadFromFile(Config::Get('path.root.server') . '/config/config.test.php', false);
         }
 
         $this->oEngine = Engine::getInstance();
-        /**
-         * Инициализируем ядро
-         */
         $this->oEngine->Init();
-//      путь к директори и с фикстурами
         $this->sDirFixtures = realpath((dirname(__FILE__)) . "/fixtures/");
     }
-    /**
-     * Загрузка фикстур
-     */
+
     public function load() {
         $this->loadFixtures();
     }
 
     /**
-     * Вызов функции роботы с БД
+     * Calling a function of the database
+     *
+     * @return purge DB
      */
     public function purgeDB()
     {
@@ -40,33 +53,35 @@ class LoadFixtures
     }
 
     /**
-     * Функции роботы с БД
+     * Function to work with DB
+     *
+     * @return void
      */
     private function _purgeDB() {
         $sDbname = Config::Get('db.params.dbname');
-
+        //DROP DATABASE
         if (mysql_select_db($sDbname)) {
             mysql_query("DROP DATABASE $sDbname");
             echo "DROP DATABASE $sDbname \n";
         }
-
+        //CREATE DATABASE
         if (mysql_query("CREATE DATABASE $sDbname") === false) {
             return mysql_error();
         }
         echo "CREATE DATABASE $sDbname \n";
-
+        // SELECTED DATABASE
         if (mysql_select_db($sDbname) === false) {
             return mysql_error();
         }
 
         echo "SELECTED DATABASE $sDbname \n";
-
+        // ExportSQL dump DB install_base.sql
         $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/install_base.sql');
 
         if (!$result['result']) {
             return $result['errors'];
         }
-
+        // ExportSQL dump DB geo_base.sql
         $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/geo_base.sql');
 
         if (!$result['result']) {
@@ -80,7 +95,12 @@ class LoadFixtures
     }
 
     /**
-     * Загрузка фикстур
+     * loadFixtures
+     *
+     * Function of loading fixture with the directory tests/fixtures/
+     *
+     * @var array $aFiles
+     * @var array $iOrder
      */
     private function loadFixtures() {
         $aFiles = glob("{$this->sDirFixtures}/*Fixtures.php");
@@ -94,11 +114,8 @@ class LoadFixtures
             $iOrder = forward_static_call(array($sClassName, 'getOrder'));
             if (!array_key_exists($iOrder, $aFixtures)) {
                 $aFixtures[$iOrder] = $sClassName;
-            } else {
-                //@todo разруливание одинаковых ордеров
             }
         }
-//        сортирование фикстур
         ksort($aFixtures);
 
         if (count($aFixtures)) {
@@ -113,19 +130,17 @@ class LoadFixtures
     }
 
     /**
-     * @param type $plugin
+     * Function of loading fixture with the plugin
      *
-     * Загрузка фикстур с плагинов
+     * @param string $plugin
      */
     public function loadPluginFixtures($plugin){
-//      переопределение директории с фикстурами
         $sPath = Config::Get('path.root.server').'/plugins/' . $plugin . '/tests/fixtures';
         if (!is_dir($sPath)) {
             throw new InvalidArgumentException('Plugin not found by LS directory: ' . $sPath, 10);
         }
 
         $this->sDirFixtures = $sPath;
-//       загрузка фикстур
         $this->loadFixtures();
     }
 
