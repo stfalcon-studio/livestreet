@@ -4,14 +4,20 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 
 class BlogFixtures extends AbstractFixtures
 {
-
+//      Порядок сортировки
     public static function getOrder()
     {
         return 1;
     }
 
+    /**
+     * Создание блогов
+     */
     public function load()
     {
+
+//       Создание колективного блога
+        
         $oUserStfalcon = $this->getReference('user-golfer');
 
         /* @var $oBlogGadgets ModuleBlog_EntityBlog */
