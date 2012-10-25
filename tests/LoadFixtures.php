@@ -1,10 +1,5 @@
 <?php
-
-/**
- * Description of LoadFixtures
- *
- * @author user
- */
+// Получаем объект конфигурации
 require_once("config/loader.php");
 require_once("engine/classes/Engine.class.php");
 
@@ -16,6 +11,7 @@ class LoadFixtures
     private $sDirFixtures;
 
     public function __construct() {
+//        загружаем конфигурацию для тестов
         if (file_exists(Config::Get('path.root.server') . '/config/config.test.php')) {
             Config::LoadFromFile(Config::Get('path.root.server') . '/config/config.test.php', false);
         }
@@ -25,19 +21,27 @@ class LoadFixtures
          * Инициализируем ядро
          */
         $this->oEngine->Init();
-
+//      путь к директори и с фикстурами
         $this->sDirFixtures = realpath((dirname(__FILE__)) . "/fixtures/");
     }
-
+    /**
+     * Загрузка фикстур
+     */
     public function load() {
         $this->loadFixtures();
     }
 
+    /**
+     * Вызов функции роботы с БД
+     */
     public function purgeDB()
     {
         $this->_purgeDB();
     }
 
+    /**
+     * Функции роботы с БД
+     */
     private function _purgeDB() {
         $sDbname = Config::Get('db.params.dbname');
 
@@ -75,6 +79,9 @@ class LoadFixtures
         return true;
     }
 
+    /**
+     * Загрузка фикстур
+     */
     private function loadFixtures() {
         $aFiles = glob("{$this->sDirFixtures}/*Fixtures.php");
         $aFixtures = array();
@@ -91,6 +98,7 @@ class LoadFixtures
                 //@todo разруливание одинаковых ордеров
             }
         }
+//        сортирование фикстур
         ksort($aFixtures);
 
         if (count($aFixtures)) {
@@ -104,14 +112,20 @@ class LoadFixtures
         }
     }
 
+    /**
+     * @param type $plugin
+     *
+     * Загрузка фикстур с плагинов
+     */
     public function loadPluginFixtures($plugin){
+//      переопределение директории с фикстурами
         $sPath = Config::Get('path.root.server').'/plugins/' . $plugin . '/tests/fixtures';
         if (!is_dir($sPath)) {
             throw new InvalidArgumentException('Plugin not found by LS directory: ' . $sPath, 10);
         }
 
         $this->sDirFixtures = $sPath;
-
+//       загрузка фикстур
         $this->loadFixtures();
     }
 
