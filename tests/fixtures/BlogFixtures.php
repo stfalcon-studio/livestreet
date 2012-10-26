@@ -6,7 +6,8 @@ class BlogFixtures extends AbstractFixtures
 {
     public static function getOrder()
     {
-        return 1;
+//        return 1;
+        return 0;
     }
 
     public function load()

@@ -105,14 +105,24 @@ class LoadFixtures
         $aFixtures = array();
         foreach ($aFiles as $sFilePath) {
             require_once "{$sFilePath}";
-            $iOrder = BlogFixtures::getOrder();
-
+//            $iOrder = BlogFixtures::getOrder();
             preg_match("/([a-zA-Z]+Fixtures).php$/", $sFilePath, $matches);
             $sClassName = $matches[1];
-            $iOrder = forward_static_call(array($sClassName, 'getOrder'));
-            if (!array_key_exists($iOrder, $aFixtures)) {
-                $aFixtures[$iOrder] = $sClassName;
+            $iOrder = forward_static_call(array($sClassName, 'getOrder')) * 100;
+
+            /*while (array_key_exists($aFixtures[$iOrder])) {
+                $iOrder++;
             }
+            $aFixtures[$iOrder] = $sClassName;*/
+
+            if (!array_key_exists($iOrder, $aFixtures)) {
+                $iOrder = $iOrder+100;
+                $aFixtures[$iOrder] = $sClassName;
+                var_dump($aFixtures);
+            } else {
+                
+            }
+
         }
         ksort($aFixtures);
 
