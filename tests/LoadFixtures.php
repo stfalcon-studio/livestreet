@@ -43,7 +43,7 @@ class LoadFixtures
     }
 
     /**
-     * Calling a function of the database
+     * Call function purge DB
      *
      * @return purge DB
      */
@@ -53,7 +53,7 @@ class LoadFixtures
     }
 
     /**
-     * Function to work with DB
+     * Function purge DB
      *
      * @return void
      */
@@ -95,8 +95,6 @@ class LoadFixtures
     }
 
     /**
-     * loadFixtures
-     *
      * Function of loading fixture with the directory tests/fixtures/
      *
      * @var array $aFiles
