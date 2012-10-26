@@ -17,8 +17,8 @@ class LoadFixtures
     private $aReferences = array();
 
     /**
-    * @var Engine
-    */
+     * @var Engine
+     */
     private $oEngine;
 
     /**
@@ -43,39 +43,58 @@ class LoadFixtures
      *
      * @return bool
      */
-     public function purgeDB() {
+    public function purgeDB() {
         $sDbname = Config::Get('db.params.dbname');
+//
+//        if (mysql_select_db($sDbname)) {
+//            mysql_query("DROP DATABASE $sDbname");
+//            echo "DROP DATABASE $sDbname \n";
+//        }
 
         if (mysql_select_db($sDbname)) {
-            mysql_query("DROP DATABASE $sDbname");
-            echo "DROP DATABASE $sDbname \n";
+            $result = mysql_query("SELECT concat('TRUNCATE TABLE ', TABLE_NAME)
+                                   FROM INFORMATION_SCHEMA.TABLES
+                                   WHERE TABLE_SCHEMA  = '" . $sDbname . "'");
+
+            mysql_query('SET FOREIGN_KEY_CHECKS = 0');
+            while ($row = mysql_fetch_row($result)) {
+                if (!mysql_query($row[0])) {
+                    // exception
+                    throw new Exception();
+                }
+            }
+            mysql_query('SET FOREIGN_KEY_CHECKS = 1');
+
+            mysql_free_result($result);
+        } else {
+            if (mysql_query("CREATE DATABASE $sDbname") === false) {
+                // exception
+                throw new Exception("DB \"$sDbname\" is not Created");
+                return mysql_error();
+            } else {
+                echo "CREATE DATABASE $sDbname \n";
+                echo "SELECTED DATABASE $sDbname \n";
+                // Load dump from install_base.sql
+                $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/install_base.sql');
+
+                if (!$result['result']) {
+                    // exception
+                    throw new Exception("DB is not exported with file install_base.sql");
+                    return $result['errors'];
+                }
+                // Load dump from geo_base.sql
+                $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/geo_base.sql');
+
+                if (!$result['result']) {
+                    // exception
+                    throw new Exception("DB is not exported with file geo_base.sql");
+                    return $result['errors'];
+                }
+
+                echo "ExportSQL DATABASE $sDbname \n";
+                echo "ExportSQL DATABASE $sDbname -> geo_base \n";
+            }
         }
-
-        if (mysql_query("CREATE DATABASE $sDbname") === false) {
-            return mysql_error();
-        }
-        echo "CREATE DATABASE $sDbname \n";
-
-        if (mysql_select_db($sDbname) === false) {
-            return mysql_error();
-        }
-
-        echo "SELECTED DATABASE $sDbname \n";
-        // Load dump from install_base.sql
-        $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/install_base.sql');
-
-        if (!$result['result']) {
-            return $result['errors'];
-        }
-        // Load dump from geo_base.sql
-        $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/geo_base.sql');
-
-        if (!$result['result']) {
-            return $result['errors'];
-        }
-
-        echo "ExportSQL DATABASE $sDbname \n";
-        echo "ExportSQL DATABASE $sDbname -> geo_base \n";
 
         return true;
     }
@@ -120,8 +139,8 @@ class LoadFixtures
      * @param string $plugin
      * @return void
      */
-    public function loadPluginFixtures($plugin){
-        $sPath = Config::Get('path.root.server').'/plugins/' . $plugin . '/tests/fixtures';
+    public function loadPluginFixtures($plugin) {
+        $sPath = Config::Get('path.root.server') . '/plugins/' . $plugin . '/tests/fixtures';
         if (!is_dir($sPath)) {
             throw new InvalidArgumentException('Plugin not found by LS directory: ' . $sPath, 10);
         }
