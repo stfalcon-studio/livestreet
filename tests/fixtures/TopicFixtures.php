@@ -7,7 +7,7 @@ class TopicFixtures extends AbstractFixtures
 
     public static function getOrder()
     {
-        return 2;
+        return 1;
     }
 
     public function load()

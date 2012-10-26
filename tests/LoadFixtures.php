@@ -29,10 +29,6 @@ class LoadFixtures
     private $sDirFixtures;
 
     public function __construct() {
-        if (file_exists(Config::Get('path.root.server') . '/config/config.test.php')) {
-            Config::LoadFromFile(Config::Get('path.root.server') . '/config/config.test.php', false);
-        }
-
         $this->oEngine = Engine::getInstance();
         $this->oEngine->Init();
         $this->sDirFixtures = realpath((dirname(__FILE__)) . "/fixtures/");
@@ -101,22 +97,19 @@ class LoadFixtures
             preg_match("/([a-zA-Z]+Fixtures).php$/", $sFilePath, $matches);
             $sClassName = $matches[1];
             $iOrder = forward_static_call(array($sClassName, 'getOrder'));
-            if (!array_key_exists($iOrder, $aFixtures)) {
-                $aFixtures[$iOrder] = $sClassName;
-            } else {
-                //@todo разруливание одинаковых ордеров
-                throw new Exception("Duplicated order number $iOrder in $sClassName");
-            }
+            $aFixtures[$iOrder][] = $sClassName;
         }
         ksort($aFixtures);
 
         if (count($aFixtures)) {
-            foreach ($aFixtures as $iOrder => $sClassName) {
-                // @todo референсы дублируются в каждом объекте фиксту + в этом объекте
-                $oFixtures = new $sClassName($this->oEngine, $this->aReferences);
-                $oFixtures->load();
-                $aFixtureReference = $oFixtures->getReferences();
-                $this->aReferences = array_merge($this->aReferences, $aFixtureReference);
+            foreach ($aFixtures as $iOrder => $aClassNames) {
+                foreach ($aClassNames as $sClassName) {
+                    // @todo референсы дублируются в каждом объекте фиксту + в этом объекте
+                    $oFixtures = new $sClassName($this->oEngine, $this->aReferences);
+                    $oFixtures->load();
+                    $aFixtureReference = $oFixtures->getReferences();
+                    $this->aReferences = array_merge($this->aReferences, $aFixtureReference);
+                }
             }
         }
     }
