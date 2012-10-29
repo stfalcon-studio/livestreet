@@ -125,6 +125,7 @@ if ($hDirConfig = opendir($sDirConfig)) {
 }
 
 if(isset($_SERVER['HTTP_APP_ENV']) && $_SERVER['HTTP_APP_ENV']=='test') {
+//    var_dump($_COOKIE);
     /**
      * Подгружаем файл тестового конфига
      */

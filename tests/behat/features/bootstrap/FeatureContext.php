@@ -40,6 +40,7 @@ class FeatureContext extends MinkContext
      * @BeforeScenario
      */
     public static function prepare($event){
+//        $event->getContext()->getSession()->setCookie('HTTP_APP_ENV', 'test');
         $fixturesLoader = self::getFixturesLoader();
         $fixturesLoader->purgeDB();
         $fixturesLoader->load();
@@ -65,5 +66,11 @@ class FeatureContext extends MinkContext
         $pluginActivation =  new LoadFixtures();
         $pluginActivation->activationPlugin($plugin);
     }
-
+    /**
+     * @Then /^I wait$/
+     */
+    public function iWait()
+    {
+        $this->getSession()->wait(5000);
+    }
 }
