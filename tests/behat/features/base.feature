@@ -4,7 +4,7 @@ Feature: LiveStreet standart features
   Scenario: See main page
     Given I am on homepage
      When I press "Войти"
-     Then the response status code should be 200
+     Then the response status code should be 404
 
   Scenario: See Colective Blog
     Given I am on "/blog/gadgets"

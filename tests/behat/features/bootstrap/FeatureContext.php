@@ -56,4 +56,14 @@ class FeatureContext extends MinkContext
         $fixturesLoader->loadPluginFixtures($plugin);
     }
 
+
+    /**
+     * @Given /^I am activated plugin "([^"]*)"$/
+     */
+    public function ActivatedPlugin($plugin)
+    {
+        $pluginActivation =  new LoadFixtures();
+        $pluginActivation->activationPlugin($plugin);
+    }
+
 }

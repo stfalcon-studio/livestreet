@@ -149,5 +149,9 @@ class LoadFixtures
         $this->loadFixtures();
     }
 
+    public function activationPlugin($plugin){
+        $this->oEngine->ModulePlugin_Toggle($plugin,'Activate');
+    }
+
 }
 
