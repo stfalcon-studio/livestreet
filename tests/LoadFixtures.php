@@ -69,35 +69,38 @@ class LoadFixtures
             mysql_query('SET FOREIGN_KEY_CHECKS = 1');
 
             mysql_free_result($result);
-        }
+        } else {
 
-        if (mysql_query("CREATE DATABASE IF NOT EXISTS $sDbname") === false) {
-            // exception
-            throw new Exception("DB \"$sDbname\" is not Created");
-            echo "CREATE DATABASE $sDbname \n";
-            return mysql_error();
-        }
-            mysql_select_db($sDbname);
-
-            // Load dump from install_base.sql
-            $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/install_base.sql');
-
-            if (!$result['result']) {
+            if (mysql_query("CREATE DATABASE IF NOT EXISTS $sDbname") === false) {
                 // exception
-                throw new Exception("DB is not exported with file install_base.sql");
-                return $result['errors'];
-            }
-            echo "ExportSQL DATABASE $sDbname -> install_base.sql \n";
-            // Load dump from geo_base.sql
-            $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/geo_base.sql');
+                throw new Exception("DB \"$sDbname\" is not Created");
+                echo "CREATE DATABASE $sDbname \n";
+                return mysql_error();
+            } else {
 
-            if (!$result['result']) {
-                // exception
-                throw new Exception("DB is not exported with file geo_base.sql");
-                return $result['errors'];
-            }
-            echo "ExportSQL DATABASE $sDbname -> geo_base \n";
+                mysql_select_db($sDbname);
 
+                // Load dump from install_base.sql
+                $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/install_base.sql');
+
+                if (!$result['result']) {
+                    // exception
+                    throw new Exception("DB is not exported with file install_base.sql");
+                    return $result['errors'];
+                }
+                echo "ExportSQL DATABASE $sDbname -> install_base.sql \n";
+                // Load dump from geo_base.sql
+                $result = $this->oEngine->Database_ExportSQL(dirname(__FILE__) . '/fixtures/sql/geo_base.sql');
+
+                if (!$result['result']) {
+                    // exception
+                    throw new Exception("DB is not exported with file geo_base.sql");
+                    return $result['errors'];
+                }
+                echo "ExportSQL DATABASE $sDbname -> geo_base \n";
+
+            }
+        }
         return true;
     }
 
