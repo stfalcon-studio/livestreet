@@ -154,6 +154,11 @@ class LoadFixtures
         $this->loadFixtures();
     }
 
+    /**
+     * Function of activate plugin
+     *
+     * @param string $plugin
+     */
     public function activationPlugin($plugin){
         $this->oEngine->ModulePlugin_Toggle($plugin,'Activate');
     }
