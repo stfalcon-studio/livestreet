@@ -2,7 +2,7 @@
 default:
     extensions:
       mink_extension.phar:
-            base_url: http://livestreet.test/
+            base_url: http://livestreet.co/
             mink_loader: mink.phar
             goutte: 
               server_parameters: 
