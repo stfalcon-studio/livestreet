@@ -37,9 +37,10 @@ class FeatureContext extends MinkContext
     /**
      * Purge DB and load fixtures before running each test
      *
-     * @BeforeSuite
+     * @BeforeScenario
      */
     public static function prepare($event){
+//        $event->getContext()->getSession()->setCookie('HTTP_APP_ENV', 'test');
         $fixturesLoader = self::getFixturesLoader();
         $fixturesLoader->purgeDB();
         $fixturesLoader->load();
@@ -56,4 +57,20 @@ class FeatureContext extends MinkContext
         $fixturesLoader->loadPluginFixtures($plugin);
     }
 
+
+    /**
+     * @Given /^I am activated plugin "([^"]*)"$/
+     */
+    public function ActivatedPlugin($plugin)
+    {
+        $pluginActivation =  new LoadFixtures();
+        $pluginActivation->activationPlugin($plugin);
+    }
+    /**
+     * @Then /^I wait$/
+     */
+    public function iWait()
+    {
+        $this->getSession()->wait(5000);
+    }
 }

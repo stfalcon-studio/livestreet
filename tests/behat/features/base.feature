@@ -5,6 +5,7 @@ Feature: LiveStreet standart features
     Given I am on homepage
      When I press "Войти"
      Then the response status code should be 200
+     Then test subFeatures
 
   Scenario: See Colective Blog
     Given I am on "/blog/gadgets"
