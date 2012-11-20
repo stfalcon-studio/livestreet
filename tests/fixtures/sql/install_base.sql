@@ -605,7 +605,7 @@ CREATE TABLE IF NOT EXISTS `prefix_user` (
   `user_date_comment_last` datetime DEFAULT NULL,
   `user_ip_register` varchar(20) NOT NULL,
   `user_rating` float(9,3) NOT NULL DEFAULT '0.000',
-  `user_count_vote` int(11) unsigned NOT NULL DEFAULT '0',
+  `user_count_vote` int(11) unsigned NULL,
   `user_activate` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `user_activate_key` varchar(32) DEFAULT NULL,
   `user_profile_name` varchar(50) DEFAULT NULL,
