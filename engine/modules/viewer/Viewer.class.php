@@ -202,11 +202,12 @@ class ModuleViewer extends Module {
 		$this->sHtmlDescription=Config::Get('view.description');
 
 		/**
-		 * Создаём объект Smarty и устанавливаем необходиму параметры
+		 * Создаём объект Smarty и устанавливаем необходимые параметры
 		 */
 		$this->oSmarty = $this->CreateSmartyObject();
-		$this->oSmarty->error_reporting=error_reporting()^E_NOTICE; // подавляем NOTICE ошибки - в этом вся прелесть смарти )
+		$this->oSmarty->error_reporting=error_reporting() & ~E_NOTICE; // подавляем NOTICE ошибки - в этом вся прелесть смарти )
 		$this->oSmarty->setTemplateDir(array_merge((array)Config::Get('path.smarty.template'),array(Config::Get('path.root.server').'/plugins/')));
+		$this->oSmarty->compile_check=Config::Get('smarty.compile_check');
 		/**
 		 * Для каждого скина устанавливаем свою директорию компиляции шаблонов
 		 */
@@ -214,7 +215,8 @@ class ModuleViewer extends Module {
 		if(!is_dir($sCompilePath)) @mkdir($sCompilePath);
 		$this->oSmarty->setCompileDir($sCompilePath);
 		$this->oSmarty->setCacheDir(Config::Get('path.smarty.cache'));
-		$this->oSmarty->setPluginsDir(array_merge(array(Config::Get('path.smarty.plug'),'plugins'),$this->oSmarty->getPluginsDir()));
+		$this->oSmarty->addPluginsDir(array(Config::Get('path.smarty.plug'),'plugins'));
+		$this->oSmarty->default_template_handler_func=array($this,'SmartyDefaultTemplateHandler');
 		/**
 		 * Получаем настройки JS, CSS файлов
 		 */
@@ -282,7 +284,7 @@ class ModuleViewer extends Module {
 		$this->Assign("sHtmlDescription",htmlspecialchars($this->sHtmlDescription));
 		$this->Assign("aHtmlHeadFiles",$this->aHtmlHeadFiles);
 		$this->Assign("aHtmlRssAlternate",$this->aHtmlRssAlternate);
-		$this->Assign("sHtmlCanonical",$this->sHtmlCanonical);
+		$this->Assign("sHtmlCanonical",$this->Tools_Urlspecialchars($this->sHtmlCanonical));
 		/**
 		 * Загружаем список активных плагинов
 		 */
@@ -729,7 +731,7 @@ class ModuleViewer extends Module {
 		 * Сортируем блоки по приоритетности
 		 */
 		foreach($this->aBlocks as $sGroup=>$aBlocks) {
-			uasort($aBlocks,array(&$this,'_SortBlocks'));
+			uasort($aBlocks,array($this,'_SortBlocks'));
 			$this->aBlocks[$sGroup] = array_reverse($aBlocks);
 		}
 	}
@@ -1363,7 +1365,7 @@ class ModuleViewer extends Module {
 			'iCurrentPage' => $iCurrentPage,
 			'iNextPage' => $iNextPage,
 			'iPrevPage' => $iPrevPage,
-			'sBaseUrl' => rtrim($sBaseUrl,'/'),
+			'sBaseUrl' => rtrim($this->Tools_Urlspecialchars($sBaseUrl),'/'),
 			'sGetParams' => $sGetParams,
 		);
 		/**
@@ -1391,6 +1393,42 @@ class ModuleViewer extends Module {
 		foreach ($this->aMenu as $sContainer=>$sTemplate) {
 			$this->aMenuFetch[$sContainer]=$this->Fetch($sTemplate);
 		}
+	}
+	/**
+	 * Обработка поиска файла шаблона, если его не смог найти шаблонизатор Smarty
+	 *
+	 * @param string $sType	Тип шаблона/ресурса
+	 * @param string $sName	Имя шаблона - имя файла
+	 * @param string $sContent	Возврат содержания шаблона при return true;
+	 * @param int $iTimestamp	Возврат даты модификации шаблона при return true;
+	 * @param Smarty $oSmarty	Объект Smarty
+	 * @return string|bool
+	 */
+	public function SmartyDefaultTemplateHandler($sType,$sName,&$sContent,&$iTimestamp,$oSmarty) {
+		/**
+		 * Название шаблона может содержать, как полный путь до файла шаблона, так и относительный любого из каталога в $oSmarty->getTemplateDir()
+		 * По дефолту каталоги такие: /templates/skin/[name]/ и /plugins/
+		 */
+		/**
+		 * Задача: если это файл плагина для текущего шаблона, то смотрим этот же файл шаблона плагина в /default/
+		 */
+		if (Config::Get('view.skin')!='default') {
+			// /root/plugins/[plugin name]/templates/skin/[skin name]/dir/test.tpl
+			if (preg_match('@^'.preg_quote(Config::Get('path.root.server')).'/plugins/([\w\-_]+)/templates/skin/'.preg_quote(Config::Get('view.skin')).'/@i',$sName,$aMatch)) {
+				$sFile=str_replace($aMatch[0],Config::Get('path.root.server').'/plugins/'.$aMatch[1].'/templates/skin/default/',$sName);
+				if ($this->TemplateExists($sFile)) {
+					return $sFile;
+				}
+			}
+			// [plugin name]/templates/skin/[skin name]/dir/test.tpl
+			if (preg_match('@^([\w\-_]+)/templates/skin/'.preg_quote(Config::Get('view.skin')).'/@i',$sName,$aMatch)) {
+				$sFile=Config::Get('path.root.server').'/plugins/'.str_replace($aMatch[0],$aMatch[1].'/templates/skin/default/',$sName);
+				if ($this->TemplateExists($sFile)) {
+					return $sFile;
+				}
+			}
+		}
+		return false;
 	}
 	/**
 	 * Загружаем переменные в шаблон при завершении модуля

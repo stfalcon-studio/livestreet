@@ -83,7 +83,13 @@ class ModuleACL extends Module {
 	 * @param  ModuleUser_EntityUser $oUser	Пользователь
 	 * @return bool
 	 */
-	public function CanPostComment(ModuleUser_EntityUser $oUser) {
+	public function CanPostComment(ModuleUser_EntityUser $oUser,$oTopic=null) {
+		/**
+		 * Проверяем на закрытый блог
+		 */
+		if ($oTopic and !$this->IsAllowShowBlog($oTopic->getBlog(),$oUser)) {
+			return false;
+		}
 		if ($oUser->getRating()>=Config::Get('acl.create.comment.rating')) {
 			return true;
 		}
@@ -270,6 +276,7 @@ class ModuleACL extends Module {
 	 *
 	 * @param ModuleBlog_EntityBlog $oBlog	Блог
 	 * @param ModuleUser_EntityUser $oUser	Пользователь
+	 * @return bool
 	 */
 	public function IsAllowBlog($oBlog,$oUser) {
 		if ($oUser->isAdministrator()) {
@@ -285,6 +292,28 @@ class ModuleACL extends Module {
 			if ($this->ACL_CanAddTopic($oUser,$oBlog) or $oBlogUser->getIsAdministrator() or $oBlogUser->getIsModerator()) {
 				return true;
 			}
+		}
+		return false;
+	}
+	/**
+	 * Проверяет можно или нет юзеру просматривать блог
+	 *
+	 * @param ModuleBlog_EntityBlog $oBlog	Блог
+	 * @param ModuleUser_EntityUser $oUser	Пользователь
+	 * @return bool
+	 */
+	public function IsAllowShowBlog($oBlog,$oUser) {
+		if ($oBlog->getType()!='close') {
+			return true;
+		}
+		if ($oUser->isAdministrator()) {
+			return true;
+		}
+		if ($oBlog->getOwnerId()==$oUser->getId()) {
+			return true;
+		}
+		if ($oBlogUser=$this->Blog_GetBlogUserByBlogIdAndUserId($oBlog->getId(),$oUser->getId()) and $oBlogUser->getUserRole()>ModuleBlog::BLOG_USER_ROLE_GUEST) {
+			return true;
 		}
 		return false;
 	}
@@ -311,10 +340,20 @@ class ModuleACL extends Module {
 		/**
 		 * Если модер или админ блога
 		 */
-		$oBlogUser=$this->Blog_GetBlogUserByBlogIdAndUserId($oTopic->getBlogId(),$oUser->getId());
-		if ($oBlogUser and ($oBlogUser->getIsModerator() or $oBlogUser->getIsAdministrator())) {
-			return true;
+		if ($this->User_GetUserCurrent() and $this->User_GetUserCurrent()->getId()==$oUser->getId()) {
+			/**
+			 * Для авторизованного пользователя данный код будет работать быстрее
+			 */
+			if ($oTopic->getBlog()->getUserIsAdministrator() or $oTopic->getBlog()->getUserIsModerator()) {
+				return true;
+			}
+		} else {
+			$oBlogUser=$this->Blog_GetBlogUserByBlogIdAndUserId($oTopic->getBlogId(),$oUser->getId());
+			if ($oBlogUser and ($oBlogUser->getIsModerator() or $oBlogUser->getIsAdministrator())) {
+				return true;
+			}
 		}
+
 		return false;
 	}
 	/**
@@ -340,9 +379,18 @@ class ModuleACL extends Module {
 		/**
 		 * Если модер или админ блога
 		 */
-		$oBlogUser=$this->Blog_GetBlogUserByBlogIdAndUserId($oTopic->getBlogId(),$oUser->getId());
-		if ($oBlogUser and ($oBlogUser->getIsModerator() or $oBlogUser->getIsAdministrator())) {
-			return true;
+		if ($this->User_GetUserCurrent() and $this->User_GetUserCurrent()->getId()==$oUser->getId()) {
+			/**
+			 * Для авторизованного пользователя данный код будет работать быстрее
+			 */
+			if ($oTopic->getBlog()->getUserIsAdministrator() or $oTopic->getBlog()->getUserIsModerator()) {
+				return true;
+			}
+		} else {
+			$oBlogUser=$this->Blog_GetBlogUserByBlogIdAndUserId($oTopic->getBlogId(),$oUser->getId());
+			if ($oBlogUser and ($oBlogUser->getIsModerator() or $oBlogUser->getIsAdministrator())) {
+				return true;
+			}
 		}
 		return false;
 	}

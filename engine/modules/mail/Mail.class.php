@@ -173,6 +173,7 @@ class ModuleMail extends Module {
 		$this->oMailer->CharSet=$this->sCharSet;
 
 		$this->oMailer->From=$this->sFrom;
+		$this->oMailer->Sender=$this->sFrom;
 		$this->oMailer->FromName=$this->sFromName;
 	}
 	/**
@@ -200,6 +201,19 @@ class ModuleMail extends Module {
 	public function AddAdress($sMail,$sName=null) {
 		ob_start();
 		$this->oMailer->AddAddress($sMail,$sName);
+		$this->sError = ob_get_clean();
+	}
+	/**
+	 * Добавляем прикрепляемый файл
+	 *
+	 * @param string $sPath	Абсолютный путь к файлу
+	 * @param string $sName	Свое имя файла
+	 * @param string $sEncoding Кодированик файла
+	 * @param string $sType	Расширение файла (MIME).
+	 */
+	public function AddAttachment($sPath,$sName='',$sEncoding='base64',$sType='application/octet-stream') {
+		ob_start();
+		$this->oMailer->AddAttachment($sPath,$sName,$sEncoding,$sType);
 		$this->sError = ob_get_clean();
 	}
 	/**

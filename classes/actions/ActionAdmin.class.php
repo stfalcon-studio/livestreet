@@ -62,6 +62,11 @@ class ActionAdmin extends Action {
 		$this->AddEvent('recalcfavourite','EventRecalculateFavourite');
 		$this->AddEvent('recalcvote','EventRecalculateVote');
 		$this->AddEvent('recalctopic','EventRecalculateTopic');
+		$this->AddEventPreg('/^blogcategory$/i','/^modal-add$/i','EventBlogCategoryModalAdd');
+		$this->AddEventPreg('/^blogcategory$/i','/^modal-edit$/i','EventBlogCategoryModalEdit');
+		$this->AddEventPreg('/^blogcategory$/i','/^add$/i','EventBlogCategoryAdd');
+		$this->AddEventPreg('/^blogcategory$/i','/^edit$/i','EventBlogCategoryEdit');
+		$this->AddEvent('blogcategory','EventBlogCategory');
 	}
 
 
@@ -76,6 +81,146 @@ class ActionAdmin extends Action {
 	 */
 	protected function EventIndex() {
 
+	}
+
+	/**
+	 * Список категорий блогов
+	 */
+	protected function EventBlogCategory() {
+		/**
+		 * Обработка удаления
+		 */
+		if ($this->GetParam(0)=='delete' and $oCategory=$this->Blog_GetCategoryById($this->GetParam(1))) {
+			$this->Security_ValidateSendForm();
+			/**
+			 * Получаем все дочернии категории
+			 */
+			$aCategoriesId=$this->Blog_GetChildrenCategoriesById($oCategory->getId(),true);
+			$aCategoriesId[]=$oCategory->getId();
+			/**
+			 * У блогов проставляем category_id = null
+			 */
+			$this->Blog_ReplaceBlogsCategoryByCategoryId($aCategoriesId,null);
+			/**
+			 * Удаляем категории
+			 */
+			$this->Blog_DeleteCategoryByArrayId($aCategoriesId);
+		}
+		/**
+		 * Обработка изменения сортировки
+		 */
+		if ($this->GetParam(0)=='sort' and $oCategory=$this->Blog_GetCategoryById($this->GetParam(1))) {
+			$this->Security_ValidateSendForm();
+			$sWay=$this->GetParam(2)=='down' ? 'down' : 'up';
+			$iSortOld=$oCategory->getSort();
+			if ($oCategoryPrev=$this->Blog_GetNextCategoryBySort($iSortOld,$oCategory->getPid(),$sWay)) {
+				$iSortNew=$oCategoryPrev->getSort();
+				$oCategoryPrev->setSort($iSortOld);
+				$this->Blog_UpdateCategory($oCategoryPrev);
+			} else {
+				if ($sWay=='down') {
+					$iSortNew=$iSortOld-1;
+				} else {
+					$iSortNew=$iSortOld+1;
+				}
+			}
+			/**
+			 * Меняем значения сортировки местами
+			 */
+			$oCategory->setSort($iSortNew);
+			$this->Blog_UpdateCategory($oCategory);
+		}
+		$aCategories=$this->Blog_GetCategoriesTree();
+		$this->Viewer_Assign("aCategories",$aCategories);
+	}
+
+	/**
+	 * Загружает модальное окно создания категории бога
+	 */
+	protected function EventBlogCategoryModalAdd() {
+		$this->Viewer_SetResponseAjax('json');
+		$aCategories=$this->Blog_GetCategoriesTree();
+		$oViewer=$this->Viewer_GetLocalViewer();
+		$oViewer->Assign('aCategories',$aCategories);
+		/**
+		 * Устанавливаем переменные для ajax ответа
+		 */
+		$this->Viewer_AssignAjax('sText',$oViewer->Fetch("actions/ActionAdmin/blogcategory_form_add.tpl"));
+	}
+
+	/**
+	 * Загружает модальное окно редактирования категории бога
+	 */
+	protected function EventBlogCategoryModalEdit() {
+		$this->Viewer_SetResponseAjax('json');
+		if (!($oCategory=$this->Blog_GetCategoryById(getRequestStr('id')))) {
+			$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+			return;
+		}
+		$aCategories=$this->Blog_GetCategoriesTree();
+		$oViewer=$this->Viewer_GetLocalViewer();
+		$oViewer->Assign('oCategory',$oCategory);
+		$oViewer->Assign('aCategories',$aCategories);
+		/**
+		 * Устанавливаем переменные для ajax ответа
+		 */
+		$this->Viewer_AssignAjax('sText',$oViewer->Fetch("actions/ActionAdmin/blogcategory_form_add.tpl"));
+	}
+
+	protected function EventBlogCategoryAdd() {
+		$this->Viewer_SetResponseAjax('json');
+
+		/**
+		 * Создаем категорию
+		 */
+		$oCategory=Engine::GetEntity('ModuleBlog_EntityBlogCategory');
+		$oCategory->setTitle(getRequestStr('title'));
+		$oCategory->setUrl(getRequestStr('url'));
+		$oCategory->setSort(getRequestStr('sort'));
+		$oCategory->setPid(getRequestStr('pid'));
+
+		if ($oCategory->_Validate()) {
+			if ($this->Blog_AddCategory($oCategory)) {
+				return;
+			}
+		} else {
+			$this->Message_AddError($oCategory->_getValidateError(),$this->Lang_Get('error'));
+		}
+		$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+	}
+
+	protected function EventBlogCategoryEdit() {
+		$this->Viewer_SetResponseAjax('json');
+
+		if (!($oCategory=$this->Blog_GetCategoryById(getRequestStr('id')))) {
+			$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+			return;
+		}
+		/**
+		 * Создаем категорию
+		 */
+		$oCategory->setTitle(getRequestStr('title'));
+		$oCategory->setUrl(getRequestStr('url'));
+		$oCategory->setSort(getRequestStr('sort'));
+		$oCategory->setPid(getRequestStr('pid'));
+
+		if ($oCategory->_Validate()) {
+			if ($this->Blog_UpdateCategory($oCategory)) {
+				/**
+				 * Проверяем корректность вложений
+				 */
+				if (count($this->Blog_GetCategoriesTree())<$this->Blog_GetCountCategories()) {
+					$oCategory->setPid(null);
+					$oCategory->setUrlFull($oCategory->getUrl());
+					$this->Blog_UpdateCategory($oCategory);
+				}
+				$this->Blog_RebuildCategoryUrlFull($oCategory);
+				return;
+			}
+		} else {
+			$this->Message_AddError($oCategory->_getValidateError(),$this->Lang_Get('error'));
+		}
+		$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 	}
 	/**
 	 * Перестроение дерева комментариев, актуально при $config['module']['comment']['use_nested'] = true;
@@ -148,7 +293,7 @@ class ActionAdmin extends Action {
 		/**
 		 * Получаем название плагина и действие
 		 */
-		if($sPlugin=getRequest('plugin',null,'get') and $sAction=getRequest('action',null,'get')) {
+		if($sPlugin=getRequestStr('plugin',null,'get') and $sAction=getRequestStr('action',null,'get')) {
 			return $this->SubmitManagePlugin($sPlugin,$sAction);
 		}
 		/**
@@ -171,7 +316,7 @@ class ActionAdmin extends Action {
 	 */
 	protected function EventUserFields()
 	{
-		switch(getRequest('action')) {
+		switch(getRequestStr('action')) {
 			/**
 			 * Создание нового поля
 			 */
@@ -184,11 +329,11 @@ class ActionAdmin extends Action {
 					return;
 				}
 				$oField = Engine::GetEntity('User_Field');
-				$oField->setName(getRequest('name'));
-				$oField->setTitle(getRequest('title'));
-				$oField->setPattern(getRequest('pattern'));
-				if (in_array(getRequest('type'),$this->User_GetUserFieldTypes())) {
-					$oField->setType(getRequest('type'));
+				$oField->setName(getRequestStr('name'));
+				$oField->setTitle(getRequestStr('title'));
+				$oField->setPattern(getRequestStr('pattern'));
+				if (in_array(getRequestStr('type'),$this->User_GetUserFieldTypes())) {
+					$oField->setType(getRequestStr('type'));
 				} else {
 					$oField->setType('');
 				}
@@ -214,11 +359,11 @@ class ActionAdmin extends Action {
 				 * Обрабатываем как ajax запрос (json)
 				 */
 				$this->Viewer_SetResponseAjax('json');
-				if (!getRequest('id')) {
+				if (!getRequestStr('id')) {
 					$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 					return;
 				}
-				$this->User_deleteUserField(getRequest('id'));
+				$this->User_deleteUserField(getRequestStr('id'));
 				$this->Message_AddNotice($this->Lang_Get('user_field_deleted'),$this->Lang_Get('attention'));
 				break;
 			/**
@@ -229,11 +374,11 @@ class ActionAdmin extends Action {
 				 * Обрабатываем как ajax запрос (json)
 				 */
 				$this->Viewer_SetResponseAjax('json');
-				if (!getRequest('id')) {
+				if (!getRequestStr('id')) {
 					$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 					return;
 				}
-				if (!$this->User_userFieldExistsById(getRequest('id'))) {
+				if (!$this->User_userFieldExistsById(getRequestStr('id'))) {
 					$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 					return false;
 				}
@@ -241,17 +386,17 @@ class ActionAdmin extends Action {
 					return;
 				}
 				$oField = Engine::GetEntity('User_Field');
-				$oField->setId(getRequest('id'));
-				$oField->setName(getRequest('name'));
-				$oField->setTitle(getRequest('title'));
-				$oField->setPattern(getRequest('pattern'));
-				if (in_array(getRequest('type'),$this->User_GetUserFieldTypes())) {
-					$oField->setType(getRequest('type'));
+				$oField->setId(getRequestStr('id'));
+				$oField->setName(getRequestStr('name'));
+				$oField->setTitle(getRequestStr('title'));
+				$oField->setPattern(getRequestStr('pattern'));
+				if (in_array(getRequestStr('type'),$this->User_GetUserFieldTypes())) {
+					$oField->setType(getRequestStr('type'));
 				} else {
 					$oField->setType('');
 				}
 
-				if ($this->User_updateUserField($oField)) {
+				if (!$this->User_updateUserField($oField)) {
 					$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 					return;
 				}
@@ -280,18 +425,18 @@ class ActionAdmin extends Action {
 	 */
 	public function checkUserField()
 	{
-		if (!getRequest('title')) {
+		if (!getRequestStr('title')) {
 			$this->Message_AddError($this->Lang_Get('user_field_error_add_no_title'),$this->Lang_Get('error'));
 			return false;
 		}
-		if (!getRequest('name')) {
+		if (!getRequestStr('name')) {
 			$this->Message_AddError($this->Lang_Get('user_field_error_add_no_name'),$this->Lang_Get('error'));
 			return false;
 		}
 		/**
 		 * Не допускаем дубликатов по имени
 		 */
-		if ($this->User_userFieldExistsByName(getRequest('name'), getRequest('id'))) {
+		if ($this->User_userFieldExistsByName(getRequestStr('name'), getRequestStr('id'))) {
 			$this->Message_AddError($this->Lang_Get('user_field_error_name_exists'),$this->Lang_Get('error'));
 			return false;
 		}

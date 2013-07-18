@@ -1,3 +1,7 @@
+{**
+ * Список пользователей (таблица)
+ *}
+
 <table class="table table-users">
 	{if $bUsersUseOrder}
 		<thead>
@@ -28,31 +32,33 @@
 	{/if}
 
 	<tbody>
-		{if $aUsersList}
-			{foreach from=$aUsersList item=oUserList}
-				{assign var="oSession" value=$oUserList->getSession()}
-				{assign var="oUserNote" value=$oUserList->getUserNote()}
-				<tr>
-					<td class="cell-name">
-						<a href="{$oUserList->getUserWebPath()}"><img src="{$oUserList->getProfileAvatarPath(48)}" alt="avatar" class="avatar" /></a>
-						<div class="name {if !$oUserList->getProfileName()}no-realname{/if}">
-							<p class="username word-wrap"><a href="{$oUserList->getUserWebPath()}">{$oUserList->getLogin()}</a></p>
-							{if $oUserList->getProfileName()}<p class="realname">{$oUserList->getProfileName()}</p>{/if}
-						</div>
-					</td>
-					<td>
-						{if $oUserCurrent}
-							{if $oUserNote}
-								<button type="button" class="button button-action button-action-note js-infobox" title="{$oUserNote->getText()|escape:'html'}"><i class="icon-synio-comments-green"></i></button>
-							{/if}
-							<a href="{router page='talk'}add/?talk_users={$oUserList->getLogin()}"><button type="submit"  class="button button-action button-action-send-message"><i class="icon-synio-send-message"></i><span>{$aLang.user_write_prvmsg}</span></button></a>
+		{foreach $aUsersList as $oUserList}
+			{$oSession = $oUserList->getSession()}
+			{$oUserNote = $oUserList->getUserNote()}
+
+			<tr>
+				<td class="cell-name">
+					<a href="{$oUserList->getUserWebPath()}"><img src="{$oUserList->getProfileAvatarPath(48)}" alt="avatar" class="avatar" /></a>
+					<div class="name {if !$oUserList->getProfileName()}no-realname{/if}">
+						<p class="username word-wrap"><a href="{$oUserList->getUserWebPath()}">{$oUserList->getLogin()}</a></p>
+						{if $oUserList->getProfileName()}<p class="realname">{$oUserList->getProfileName()}</p>{/if}
+					</div>
+				</td>
+				<td>
+					{if $oUserCurrent}
+						{if $oUserNote}
+							<button type="button" class="button button-icon button-note js-tooltip" title="{$oUserNote->getText()|escape:'html'}"><i class="icon-synio-comments-green"></i></button>
 						{/if}
-					</td>
-					<td class="cell-skill">{$oUserList->getSkill()}</td>
-					<td class="cell-rating {if $oUserList->getRating() < 0}negative{/if}"><strong>{$oUserList->getRating()}</strong></td>
-				</tr>
-			{/foreach}
-		{else}
+
+						<a href="{router page='talk'}add/?talk_users={$oUserList->getLogin()}" class="button button-slider button-action button-action-send-message button-icon">
+							<i class="icon-synio-send-message"></i><span>{$aLang.user_write_prvmsg}</span>
+						</a>
+					{/if}
+				</td>
+				<td class="cell-skill">{$oUserList->getSkill()}</td>
+				<td class="cell-rating {if $oUserList->getRating() < 0}negative{/if}"><strong>{$oUserList->getRating()}</strong></td>
+			</tr>
+		{foreachelse}
 			<tr>
 				<td colspan="4">
 					{if $sUserListEmpty}
@@ -62,9 +68,8 @@
 					{/if}
 				</td>
 			</tr>
-		{/if}
+		{/foreach}
 	</tbody>
 </table>
 
-
-{include file='paging.tpl' aPaging=$aPaging}
+{include file='pagination.tpl' aPaging=$aPaging}
