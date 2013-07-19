@@ -1,20 +1,25 @@
-{include file='header.tpl' sMenuHeadItemSelect="blogs"}
+{**
+ * Список блогов
+ *}
 
-<h2 class="page-header">{$aLang.blogs}</h2>
+{extends file='layouts/layout.base.tpl'}
 
-<form action="" method="POST" id="form-blogs-search" onsubmit="return false;" class="search-item">
-	<div class="search-input-wrapper">
-		<input type="text" placeholder="{$aLang.blogs_search_title_hint}" autocomplete="off" name="blog_title" class="input-text" value="" onkeyup="ls.timer.run(ls.blog.searchBlogs,'blogs_search',['form-blogs-search'],1000);">
-		<div class="input-submit" onclick="jQuery('#form-blogs-search').submit()"></div>
+{block name='layout_options'}
+	{$sMenuHeadItemSelect = 'blogs'}
+{/block}
+
+{block name='layout_page_title'}{$aLang.blogs}{/block}
+
+{block name='layout_content'}
+	{include file='forms/form.search.blogs.tpl'}
+
+	<div id="blogs-list-search" style="display:none;"></div>
+
+	<div id="blogs-list-original">
+		{if !$sBlogsRootPage}
+			{router page='blogs' assign=sBlogsRootPage}
+		{/if}
+		{include file='actions/ActionBlogs/blog_list.tpl' bBlogsUseOrder=true sBlogsRootPage=$sBlogsRootPage}
+		{include file='pagination.tpl' aPaging=$aPaging}
 	</div>
-</form>
-
-<div id="blogs-list-search" style="display:none;"></div>
-
-<div id="blogs-list-original">
-	{router page='blogs' assign=sBlogsRootPage}
-	{include file='blog_list.tpl' bBlogsUseOrder=true sBlogsRootPage=$sBlogsRootPage}
-	{include file='paging.tpl' aPaging=$aPaging}
-</div>
-
-{include file='footer.tpl'}
+{/block}

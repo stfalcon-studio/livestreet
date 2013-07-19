@@ -1,7 +1,17 @@
-{include file='header.tpl'  menu='people'}
+{**
+ * Список пользователей из определенной страны
+ *}
 
-<h2 class="page-header">{$aLang.user_list}: <span>{$oCountry->getName()|escape:'html'}{if $aPaging} ({$aPaging.iCount}){/if}</span></h2>
+{extends file='layouts/layout.base.tpl'}
 
-{include file='user_list.tpl' aUsersList=$aUsersCountry}
+{block name='layout_options'}
+	{$sNav = 'users'}
+{/block}
 
-{include file='footer.tpl'}
+{block name='layout_page_title'}
+	{$aLang.user_list}: <span>{$oCountry->getName()|escape:'html'}{if $aPaging} ({$aPaging.iCount}){/if}</span>
+{/block}
+
+{block name='layout_content'}
+	{include file='user_list.tpl' aUsersList=$aUsersCountry}
+{/block}

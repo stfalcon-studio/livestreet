@@ -46,6 +46,12 @@ class ActionQuestion extends Action {
 	 * @var ModuleUser_EntityUser|null
 	 */
 	protected $oUserCurrent=null;
+	/**
+	 * Тип топика
+	 *
+	 * @var string
+	 */
+	protected $sType = 'question';
 
 	/**
 	 * Инициализация
@@ -120,6 +126,7 @@ class ActionQuestion extends Action {
 		 */
 		$this->Viewer_Assign('aBlogsAllow',$this->Blog_GetBlogsAllowByUser($this->oUserCurrent));
 		$this->Viewer_Assign('bEditDisabled',$oTopic->getQuestionCountVote()==0 ? false : true);
+		$this->Viewer_Assign('sTopicType', $this->sType);
 		$this->Viewer_AddHtmlTitle($this->Lang_Get('topic_question_title_edit'));
 		/**
 		 * Устанавливаем шаблон вывода
@@ -152,6 +159,8 @@ class ActionQuestion extends Action {
 				$_REQUEST['answer'][]=$aAnswer['text'];
 			}
 		}
+
+		$this->Viewer_Assign('oTopicEdit', $oTopic);
 	}
 	/**
 	 * Добавление топика
@@ -167,6 +176,7 @@ class ActionQuestion extends Action {
 		 */
 		$this->Viewer_Assign('aBlogsAllow',$this->Blog_GetBlogsAllowByUser($this->oUserCurrent));
 		$this->Viewer_Assign('bEditDisabled',false);
+		$this->Viewer_Assign('sTopicType', $this->sType);
 		$this->Viewer_AddHtmlTitle($this->Lang_Get('topic_question_title_create'));
 		/**
 		 * Обрабатываем отправку формы
@@ -190,10 +200,10 @@ class ActionQuestion extends Action {
 		/**
 		 * Заполняем поля для валидации
 		 */
-		$oTopic->setBlogId(getRequest('blog_id'));
-		$oTopic->setTitle(strip_tags(getRequest('topic_title')));
-		$oTopic->setTextSource(getRequest('topic_text'));
-		$oTopic->setTags(getRequest('topic_tags'));
+		$oTopic->setBlogId(getRequestStr('blog_id'));
+		$oTopic->setTitle(strip_tags(getRequestStr('topic_title')));
+		$oTopic->setTextSource(getRequestStr('topic_text'));
+		$oTopic->setTags(getRequestStr('topic_tags'));
 		$oTopic->setUserId($this->oUserCurrent->getId());
 		$oTopic->setType('question');
 		$oTopic->setDateAdd(date("Y-m-d H:i:s"));
@@ -246,7 +256,7 @@ class ActionQuestion extends Action {
 		 */
 		$oTopic->clearQuestionAnswer();
 		foreach (getRequest('answer',array()) as $sAnswer) {
-			$oTopic->addQuestionAnswer($sAnswer);
+			$oTopic->addQuestionAnswer((string)$sAnswer);
 		}
 		/**
 		 * Публикуем или сохраняем
@@ -294,7 +304,7 @@ class ActionQuestion extends Action {
 			/**
 			 * Добавляем автора топика в подписчики на новые комментарии к этому топику
 			 */
-			$this->Subscribe_AddSubscribeSimple('topic_new_comment',$oTopic->getId(),$this->oUserCurrent->getMail());
+			$this->Subscribe_AddSubscribeSimple('topic_new_comment',$oTopic->getId(),$this->oUserCurrent->getMail(),$this->oUserCurrent->getId());
 			//Делаем рассылку спама всем, кто состоит в этом блоге
 			if ($oTopic->getPublish()==1 and $oBlog->getType()!='personal') {
 				$this->Topic_SendNotifyTopicNew($oBlog,$oTopic,$this->oUserCurrent);
@@ -324,12 +334,12 @@ class ActionQuestion extends Action {
 		/**
 		 * Заполняем поля для валидации
 		 */
-		$oTopic->setBlogId(getRequest('blog_id'));
+		$oTopic->setBlogId(getRequestStr('blog_id'));
 		if ($oTopic->getQuestionCountVote()==0) {
-			$oTopic->setTitle(strip_tags(getRequest('topic_title')));
+			$oTopic->setTitle(strip_tags(getRequestStr('topic_title')));
 		}
-		$oTopic->setTextSource(getRequest('topic_text'));
-		$oTopic->setTags(getRequest('topic_tags'));
+		$oTopic->setTextSource(getRequestStr('topic_text'));
+		$oTopic->setTags(getRequestStr('topic_tags'));
 		$oTopic->setUserIp(func_getIp());
 		/**
 		 * Проверка корректности полей формы
@@ -380,7 +390,7 @@ class ActionQuestion extends Action {
 		if ($oTopic->getQuestionCountVote()==0) {
 			$oTopic->clearQuestionAnswer();
 			foreach (getRequest('answer',array()) as $sAnswer) {
-				$oTopic->addQuestionAnswer($sAnswer);
+				$oTopic->addQuestionAnswer((string)$sAnswer);
 			}
 		}
 		/**
@@ -476,6 +486,7 @@ class ActionQuestion extends Action {
 			 */
 			$aAnswers=getRequest('answer',array());
 			foreach ($aAnswers as $key => $sAnswer) {
+				$sAnswer=(string)$sAnswer;
 				if (trim($sAnswer)=='') {
 					unset($aAnswers[$key]);
 					continue;

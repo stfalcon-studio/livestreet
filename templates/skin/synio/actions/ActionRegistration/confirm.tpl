@@ -1,10 +1,13 @@
-{include file='header.tpl'}
+{**
+ * Просьба перейти по ссылке отправленной на емэйл для активации аккаунта
+ *}
 
+{extends file='layouts/layout.base.tpl'}
 
-<h2>{$aLang.registration_confirm_header}</h2>
-{$aLang.registration_confirm_text}<br /><br />
+{block name='layout_page_title'}{$aLang.registration_confirm_header}{/block}
 
-<a href="{cfg name='path.root.web'}">{$aLang.site_go_main}</a>
+{block name='layout_content'}
+	{$aLang.registration_confirm_text}<br /><br />
 
-
-{include file='footer.tpl'}
+	<a href="{cfg name='path.root.web'}">{$aLang.site_go_main}</a>
+{/block}

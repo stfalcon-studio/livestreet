@@ -178,7 +178,7 @@ class Router extends LsObject {
 	 * @return array
 	 */
 	protected function GetRequestArray($sReq) {
-		$aRequestUrl = ($sReq=='') ? array() : explode('/',$sReq);
+		$aRequestUrl = ($sReq=='') ? array() : explode('/',trim($sReq,'/'));
 		for ($i=0;$i<Config::Get('path.offset_request_url');$i++) {
 			array_shift($aRequestUrl);
 		}
@@ -205,7 +205,7 @@ class Router extends LsObject {
 	 * Выполняет загрузку конфигов роутинга
 	 *
 	 */
-	protected function LoadConfig() {
+	public function LoadConfig() {
 		//Конфиг роутинга, содержит соответствия URL и классов экшенов
 		$this->aConfigRoute = Config::Get('router');
 		// Переписываем конфиг согласно правилу rewrite
@@ -224,7 +224,7 @@ class Router extends LsObject {
 		$this->Viewer_Assign('sAction',$this->Standart(self::$sAction));
 		$this->Viewer_Assign('sEvent',self::$sActionEvent);
 		$this->Viewer_Assign('aParams',self::$aParams);
-		$this->Viewer_Assign('PATH_WEB_CURRENT',self::$sPathWebCurrent);
+		$this->Viewer_Assign('PATH_WEB_CURRENT',$this->Tools_Urlspecialchars(self::$sPathWebCurrent));
 	}
 	/**
 	 * Запускает на выполнение экшен
@@ -254,7 +254,7 @@ class Router extends LsObject {
 		if(!preg_match('/^Plugin([\w]+)_Action([\w]+)$/i',$sActionClass,$aMatches)) {
 			require_once(Config::Get('path.root.server').'/classes/actions/'.$sActionClass.'.class.php');
 		} else {
-			require_once(Config::Get('path.root.server').'/plugins/'.strtolower($aMatches[1]).'/classes/actions/Action'.ucfirst($aMatches[2]).'.class.php');
+			require_once(Config::Get('path.root.server').'/plugins/'.func_underscore($aMatches[1]).'/classes/actions/Action'.ucfirst($aMatches[2]).'.class.php');
 		}
 
 		$sClassName=$sActionClass;

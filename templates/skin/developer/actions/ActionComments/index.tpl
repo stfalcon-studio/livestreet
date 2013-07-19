@@ -1,7 +1,7 @@
-{include file='header.tpl'}
+{extends file='layouts/layout.base.tpl'}
 
-<h2 class="page-header">{$aLang.comments_all}</h2>
+{block name='layout_page_title'}{$aLang.comments_all}{/block}
 
-{include file='comment_list.tpl'}
-{include file='footer.tpl'}
-
+{block name='layout_content'}
+	{include file='comments/comment_list.tpl'}
+{/block}

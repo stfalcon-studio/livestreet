@@ -1,0 +1,16 @@
+/**
+ * Сетка
+ *
+ * @template layout.base.tpl
+ */
+
+#container       { margin: 0 auto; margin-bottom: 20px; padding: 0 50px; }
+#header          { padding: 50px 0; position: relative; }
+#nav             { margin-bottom: 15px; overflow: hidden; }
+#wrapper         { overflow: hidden; zoom: 1; padding: 30px; background: #fff; border-bottom: 1px solid #eee; }
+#content-wrapper { float: left; width: 100%; margin-right: -330px; }
+#content         { margin-right: 330px; background: #fff; position: relative; }
+#sidebar         { float: right; width: 300px; position: relative; z-index: 1; }
+#footer          { overflow: hidden; zoom: 1; margin-bottom: 20px; padding: 20px 0 50px; color: #777; }
+
+#container.no-sidebar #content { width: 100%; margin-right: 0; }

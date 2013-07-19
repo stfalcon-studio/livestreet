@@ -15,9 +15,8 @@
 ---------------------------------------------------------
 */
 /**
- * Настройки для тестового сервера.
- * Для использования - переименовать файл в config.test.php
- * Более детальная информация о запуске тестов в tests/README.RU.md
+ * Настройки для локального сервера.
+ * Для использования - переименовать файл в config.local.php
  */
 
 /**
@@ -28,15 +27,22 @@ $config['db']['params']['port'] = '3306';
 $config['db']['params']['user'] = 'root';
 $config['db']['params']['pass'] = '';
 $config['db']['params']['type']   = 'mysql';
-$config['db']['params']['dbname'] = 'social_test';
+$config['db']['params']['dbname'] = 'upstream_livestreet_test';
 $config['db']['table']['prefix'] = 'prefix_';
 
-$config['sys']['cache']['use']    = false; // использовать кеширование или нет
+$config['path']['root']['web'] = 'http://livestreet.work';
+$config['path']['root']['server'] = '/var/www/upstream_livestreet';
+$config['path']['offset_request_url'] = '0';
+$config['db']['tables']['engine'] = 'InnoDB';
+
+$config['sys']['cache']['use']    = false;               // использовать кеширование или нет
 $config['sys']['cache']['solid']  = false;
 
-$config['module']['user']['captcha_use_registration'] = false;  // проверять поле капчи при регистрации пользователя
+$config['compress']['css']['merge'] = false;
+$config['compress']['js']['merge']  = false;    // указывает на необходимость слияния файлов по указанным блокам.
+$config['compress']['js']['use']    = false;
 
-$config['lang']['current'] = 'english';
+$config['lang']['current'] = 'english';        // текущий язык текстовок
 $config['lang']['default'] = 'english';
 
 return $config;

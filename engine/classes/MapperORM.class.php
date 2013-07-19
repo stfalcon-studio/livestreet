@@ -32,7 +32,7 @@ class MapperORM extends Mapper {
 		$sTableName = self::GetTableName($oEntity);
 
 		$sql = "INSERT INTO ".$sTableName." SET ?a ";
-		return $this->oDb->query($sql,$oEntity->_getData());
+		return $this->oDb->query($sql,$oEntity->_getDataFields());
 	}
 	/**
 	 * Обновление сущности
@@ -53,7 +53,7 @@ class MapperORM extends Mapper {
 				$sWhere.=' and '.$this->oDb->escape($sField,true)." = ".$this->oDb->escape($oEntity->_getDataOne($sField));
 			}
 			$sql = "UPDATE ".$sTableName." SET ?a WHERE {$sWhere}";
-			return $this->oDb->query($sql,$oEntity->_getData());
+			return $this->oDb->query($sql,$oEntity->_getDataFields());
 		} else {
 			$aOriginalData = $oEntity->_getOriginalData();
 			$sWhere = implode(' AND ',array_map(create_function(
@@ -61,7 +61,7 @@ class MapperORM extends Mapper {
 													'return "{$oDb->escape($k,true)} = {$oDb->escape($v)}";'
 												),array_keys($aOriginalData),array_values($aOriginalData),array_fill(0,count($aOriginalData),$this->oDb)));
 			$sql = "UPDATE ".$sTableName." SET ?a WHERE 1=1 AND ". $sWhere;
-			return $this->oDb->query($sql,$oEntity->_getData());
+			return $this->oDb->query($sql,$oEntity->_getDataFields());
 		}
 	}
 	/**
@@ -129,9 +129,9 @@ class MapperORM extends Mapper {
 		$sTableName = self::GetTableName($sEntityFull);
 
 		list($aFilterFields,$sFilterFields)=$this->BuildFilter($aFilter,$oEntitySample);
-		list($sOrder,$sLimit)=$this->BuildFilterMore($aFilter,$oEntitySample);
+		list($sOrder,$sLimit,$sGroup)=$this->BuildFilterMore($aFilter,$oEntitySample);
 
-		$sql = "SELECT * FROM ".$sTableName." WHERE 1=1 {$sFilterFields} {$sOrder} {$sLimit} ";
+		$sql = "SELECT * FROM ".$sTableName." WHERE 1=1 {$sFilterFields} {$sGroup} {$sOrder} {$sLimit} ";
 		$aQueryParams=array_merge(array($sql),array_values($aFilterFields));
 		$aItems=array();
 		if($aRows=call_user_func_array(array($this->oDb,'select'),$aQueryParams)) {
@@ -155,8 +155,9 @@ class MapperORM extends Mapper {
 		$sTableName = self::GetTableName($sEntityFull);
 
 		list($aFilterFields,$sFilterFields)=$this->BuildFilter($aFilter,$oEntitySample);
+		list($sOrder,$sLimit,$sGroup)=$this->BuildFilterMore($aFilter,$oEntitySample);
 
-		$sql = "SELECT count(*) as c FROM ".$sTableName." WHERE 1=1 {$sFilterFields} ";
+		$sql = "SELECT count(*) as c FROM ".$sTableName." WHERE 1=1 {$sFilterFields} {$sGroup} ";
 		$aQueryParams=array_merge(array($sql),array_values($aFilterFields));
 		if($aRow=call_user_func_array(array($this->oDb,'selectRow'),$aQueryParams)) {
 			return $aRow['c'];
@@ -231,7 +232,7 @@ class MapperORM extends Mapper {
 		$sFilterFields='';
 		foreach ($aFilterFields as $k => $v) {
 			$aK=explode(' ',trim($k));
-			$sFieldCurrent=$aK[0];
+			$sFieldCurrent=$this->oDb->escape($aK[0],true);
 			$sConditionCurrent=' = ';
 			if (count($aK)>1) {
 				$sConditionCurrent=strtolower($aK[1]);
@@ -273,7 +274,7 @@ class MapperORM extends Mapper {
 				} elseif (!in_array($value,array('asc','desc'))) {
 					$value='asc';
 				}
-				$key = $oEntitySample->_getField($key);
+				$key = $this->oDb->escape($oEntitySample->_getField($key),true);
 				$sOrder.=" {$key} {$value},";
 			}
 			$sOrder=trim($sOrder,',');
@@ -305,7 +306,23 @@ class MapperORM extends Mapper {
 			}
 			$sLimit="LIMIT {$iBegin}, {$iEnd}";
 		}
-		return array($sOrder,$sLimit);
+
+		// Группировка
+		$sGroup='';
+		if (isset($aFilter['#group'])) {
+			if(!is_array($aFilter['#group'])) {
+				$aFilter['#group'] = array($aFilter['#group']);
+			}
+			foreach ($aFilter['#group'] as $sField) {
+				$sField = $this->oDb->escape($oEntitySample->_getField($sField),true);
+				$sGroup.=" {$sField},";
+			}
+			$sGroup=trim($sGroup,',');
+			if ($sGroup!='') {
+				$sGroup="GROUP BY {$sGroup}";
+			}
+		}
+		return array($sOrder,$sLimit,$sGroup);
 	}
 	/**
 	 * Список колонок/полей сущности
@@ -381,14 +398,28 @@ class MapperORM extends Mapper {
 		 * Варианты таблиц:
 		 * 	prefix_user -> если модуль совпадает с сущностью
 		 * 	prefix_user_invite -> если модуль не сопадает с сущностью
+		 * Если сущность плагина:
+		 * 	prefix_pluginname_user
+		 * 	prefix_pluginname_user_invite
 		 */
 		$sClass = Engine::getInstance()->Plugin_GetDelegater('entity', is_object($oEntity)?get_class($oEntity):$oEntity);
+		$sPluginName = func_underscore(Engine::GetPluginName($sClass));
 		$sModuleName = func_underscore(Engine::GetModuleName($sClass));
 		$sEntityName = func_underscore(Engine::GetEntityName($sClass));
 		if (strpos($sEntityName,$sModuleName)===0) {
 			$sTable=func_underscore($sEntityName);
 		} else {
 			$sTable=func_underscore($sModuleName).'_'.func_underscore($sEntityName);
+		}
+		if ($sPluginName) {
+			$sTablePlugin=$sPluginName.'_'.$sTable;
+			/**
+			 * Для обратной совместимости с 1.0.1
+			 * Если такая таблица определена в конфиге, то ок, если нет, то используем старый вариант без имени плагина
+			 */
+			if (Config::Get('db.table.'.$sTablePlugin)) {
+				$sTable=$sTablePlugin;
+			}
 		}
 		/**
 		 * Если название таблиц переопределено в конфиге, то возвращаем его

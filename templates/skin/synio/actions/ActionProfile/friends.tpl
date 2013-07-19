@@ -1,11 +1,9 @@
-{assign var="sidebarPosition" value='left'}
-{include file='header.tpl' menu='people'}
+{**
+ * Список друзей
+ *}
 
-{include file='actions/ActionProfile/profile_top.tpl'}
+{extends file='layouts/layout.user.tpl'}
 
-
-{include file='user_list.tpl' aUsersList=$aFriends}
-
-
-
-{include file='footer.tpl'}
+{block name='layout_content'}
+	{include file='user_list.tpl' aUsersList=$aFriends}
+{/block}

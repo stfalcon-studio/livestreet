@@ -107,10 +107,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 	 */
 	public function DeleteTopicContentByTopicId($iTopicId) {
 		$sql = "DELETE FROM ".Config::Get('db.table.topic_content')." WHERE topic_id = ?d ";
-		if ($this->oDb->query($sql,$iTopicId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$iTopicId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Удаляет теги у топика
@@ -123,10 +121,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id = ?d				
 		";
-		if ($this->oDb->query($sql,$sTopicId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sTopicId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Удаляет топик.
@@ -140,10 +136,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id = ?d				
 		";
-		if ($this->oDb->query($sql,$sTopicId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sTopicId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Получает топик по уникальному хешу(текст топика)
@@ -459,10 +453,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id = ?
 		";
-		if ($this->oDb->query($sql,$sTopicId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sTopicId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Обновляет топик
@@ -496,7 +488,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id = ?d
 		";
-		if ($this->oDb->query($sql,$oTopic->getBlogId(),$oTopic->getTitle(),$oTopic->getTags(),$oTopic->getDateAdd(),$oTopic->getDateEdit(),$oTopic->getUserIp(),$oTopic->getPublish(),$oTopic->getPublishDraft(),$oTopic->getPublishIndex(),$oTopic->getRating(),$oTopic->getCountVote(),$oTopic->getCountVoteUp(),$oTopic->getCountVoteDown(),$oTopic->getCountVoteAbstain(),$oTopic->getCountRead(),$oTopic->getCountComment(),$oTopic->getCountFavourite(),$oTopic->getCutText(),$oTopic->getForbidComment(),$oTopic->getTextHash(),$oTopic->getId())) {
+		$res=$this->oDb->query($sql,$oTopic->getBlogId(),$oTopic->getTitle(),$oTopic->getTags(),$oTopic->getDateAdd(),$oTopic->getDateEdit(),$oTopic->getUserIp(),$oTopic->getPublish(),$oTopic->getPublishDraft(),$oTopic->getPublishIndex(),$oTopic->getRating(),$oTopic->getCountVote(),$oTopic->getCountVoteUp(),$oTopic->getCountVoteDown(),$oTopic->getCountVoteAbstain(),$oTopic->getCountRead(),$oTopic->getCountComment(),$oTopic->getCountFavourite(),$oTopic->getCutText(),$oTopic->getForbidComment(),$oTopic->getTextHash(),$oTopic->getId());
+		if ($res!==false and !is_null($res)) {
 			$this->UpdateTopicContent($oTopic);
 			return true;
 		}
@@ -518,10 +511,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id = ?d
 		";
-		if ($this->oDb->query($sql,$oTopic->getText(),$oTopic->getTextShort(),$oTopic->getTextSource(),$oTopic->getExtra(),$oTopic->getId())) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$oTopic->getText(),$oTopic->getTextShort(),$oTopic->getTextSource(),$oTopic->getExtra(),$oTopic->getId());
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Строит строку условий для SQL запроса топиков
@@ -532,7 +523,7 @@ class ModuleTopic_MapperTopic extends Mapper {
 	protected function buildFilter($aFilter) {
 		$sWhere='';
 		if (isset($aFilter['topic_date_more'])) {
-			$sWhere.=" AND t.topic_date_add >  '".mysql_real_escape_string($aFilter['topic_date_more'])."'";
+			$sWhere.=" AND t.topic_date_add >  ".$this->oDb->escape($aFilter['topic_date_more']);
 		}
 		if (isset($aFilter['topic_publish'])) {
 			$sWhere.=" AND t.topic_publish =  ".(int)$aFilter['topic_publish'];
@@ -589,7 +580,7 @@ class ModuleTopic_MapperTopic extends Mapper {
 			if(!is_array($aFilter['topic_type'])) {
 				$aFilter['topic_type']=array($aFilter['topic_type']);
 			}
-			$sWhere.=" AND t.topic_type IN ('".join("','",array_map('mysql_real_escape_string',$aFilter['topic_type']))."')";
+			$sWhere.=" AND t.topic_type IN (".join(",",array_map(array($this->oDb,'escape'),$aFilter['topic_type'])).")";
 		}
 		return $sWhere;
 	}
@@ -637,7 +628,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 				AND				
 				user_id = ? 
 		";
-		return $this->oDb->query($sql,$oTopicRead->getCommentCountLast(),$oTopicRead->getCommentIdLast(),$oTopicRead->getDateRead(),$oTopicRead->getTopicId(),$oTopicRead->getUserId());
+		$res=$this->oDb->query($sql,$oTopicRead->getCommentCountLast(),$oTopicRead->getCommentIdLast(),$oTopicRead->getDateRead(),$oTopicRead->getTopicId(),$oTopicRead->getUserId());
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Устанавливаем дату прочтения топика
@@ -668,10 +660,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id IN(?a)				
 		";
-		if ($this->oDb->query($sql,$aTopicId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$aTopicId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Получить список просмотром/чтения топиков по списку айдишников
@@ -767,10 +757,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id IN(?a)
 		";
-		if ($this->oDb->query($sql,$sBlogId,$aTopics)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sBlogId,$aTopics);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Перемещает топики в другой блог
@@ -786,10 +774,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				blog_id = ?d
 		";
-		if ($this->oDb->query($sql,$sBlogIdNew,$sBlogId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sBlogIdNew,$sBlogId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Перемещает теги топиков в другой блог
@@ -805,10 +791,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				blog_id = ?d
 		";
-		if ($this->oDb->query($sql,$sBlogIdNew,$sBlogId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sBlogIdNew,$sBlogId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Перемещает теги топиков в другой блог
@@ -826,10 +810,8 @@ class ModuleTopic_MapperTopic extends Mapper {
 			WHERE
 				topic_id IN(?a)
 		";
-		if ($this->oDb->query($sql,$sBlogId,$aTopics)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sBlogId,$aTopics);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Возвращает список фотографий к топику-фотосет по списку id фоток
@@ -987,10 +969,8 @@ class ModuleTopic_MapperTopic extends Mapper {
                         f.target_type = 'topic'
                 )
             ";
-		if ($this->oDb->query($sql)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Пересчитывает счетчики голосований
@@ -1029,10 +1009,8 @@ class ModuleTopic_MapperTopic extends Mapper {
                         v.target_type = 'topic'
                 )
             ";
-		if ($this->oDb->query($sql)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql);
+		return $res===false or is_null($res) ? false : true;
 	}
 }
 ?>

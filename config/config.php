@@ -16,19 +16,25 @@
 */
 
 /**
+ * !!!!! ВНИМАНИЕ !!!!!
+ * 
+ * Ничего не изменяйте в этом файле!
+ * Все изменения нужно вносить в файл config/config.local.php
+ */
+
+/**
  * Настройки HTML вида
  */
 $config['view']['skin']        = 'synio';                                                              // шаблон(скин)
 $config['view']['name']        = 'Your Site';                   // название сайта
 $config['view']['description'] = 'Description your site'; // seo description
 $config['view']['keywords']    = 'site, google, internet';      // seo keywords
-$config['view']['tinymce']         = false;  // использовать или нет визуальный редактор TinyMCE
+$config['view']['wysiwyg']         = false;  // использовать или нет визуальный редактор TinyMCE
 $config['view']['noindex']          = true;   // "прятать" или нет ссылки от поисковиков, оборачивая их в тег <noindex> и добавляя rel="nofollow"
 $config['view']['img_resize_width'] = 570;    // до какого размера в пикселях ужимать картинку по щирине при загрузки её в топики и комменты
 $config['view']['img_max_width'] = 5000;    // максимальная ширина загружаемых изображений в пикселях
 $config['view']['img_max_height'] = 5000;    // максимальная высота загружаемых изображений в пикселях
 $config['view']['img_max_size_url'] = 500;    // максимальный размер картинки в kB для загрузки по URL
-$config['view']['no_assign']   = array('db'); // список групп конфигурации, которые необходимо исключить из передачи во Viewer. Только для системного пользования.
 
 /**
  * Настройки СЕО для вывода топиков
@@ -69,13 +75,15 @@ $config['path']['root']['server']     = dirname(dirname(__FILE__));           //
  * Для CLI режима использовать
  * $config['path']['root']['server']     = dirname(dirname(__FILE__));           // полный путь до сайта в файловой системе
  */
-$config['path']['root']['engine']     = '___path.root.server___/engine';  // полный путь до сайта в файловой системе;
-$config['path']['root']['engine_lib'] = '___path.root.web___/engine/lib'; // полный путь до сайта в файловой системе
-$config['path']['static']['root']     = '___path.root.web___';            // чтоб можно было статику засунуть на отдельный сервер
-$config['path']['static']['skin']     = '___path.static.root___/templates/skin/___view.skin___';
-$config['path']['uploads']['root']    = '/uploads';                          // директория для загрузки файлов
-$config['path']['uploads']['images']  ='___path.uploads.root___/images';
-$config['path']['offset_request_url'] = 0;                                   // иногда помогает если сервер использует внутренние реврайты
+$config['path']['root']['engine']           = '___path.root.server___/engine';                         // полный путь до сайта в файловой системе;
+$config['path']['root']['engine_lib']       = '___path.root.web___/engine/lib';                        // полный путь до сайта в файловой системе
+$config['path']['static']['root']           = '___path.root.web___';                                   // чтоб можно было статику засунуть на отдельный сервер
+$config['path']['static']['skin']           = '___path.static.root___/templates/skin/___view.skin___';
+$config['path']['static']['assets']         = '___path.static.skin___/assets';                         // Папка с ассетами (js, css, images)
+$config['path']['static']['framework']      = "___path.static.root___/templates/framework";            // Front-end framework
+$config['path']['uploads']['root']          = '/uploads';                                              // директория для загрузки файлов
+$config['path']['uploads']['images']        ='___path.uploads.root___/images';
+$config['path']['offset_request_url']       = 0;                                                       // иногда помогает если сервер использует внутренние реврайты
 /**
  * Настройки шаблонизатора Smarty
  */
@@ -83,6 +91,7 @@ $config['path']['smarty']['template'] = '___path.root.server___/templates/skin/_
 $config['path']['smarty']['compiled'] = '___path.root.server___/templates/compiled';
 $config['path']['smarty']['cache']    = '___path.root.server___/templates/cache';
 $config['path']['smarty']['plug']     = '___path.root.engine___/modules/viewer/plugs';
+$config['smarty']['compile_check']    = true; // Проверять или нет файлы шаблона на изменения перед компиляцией, false может значительно увеличить быстродействие, но потребует ручного удаления кеша при изменения шаблона
 /**
  * Настройки плагинов
  */
@@ -121,7 +130,7 @@ $config['sys']['mail']['include_talk']     = true;                   // Вклю
  */
 // Устанавливаем настройки кеширования
 $config['sys']['cache']['use']    = true;               // использовать кеширование или нет
-$config['sys']['cache']['type']   = 'file';             // тип кеширования: file и memory. memory использует мемкеш
+$config['sys']['cache']['type']   = 'file';             // тип кеширования: file, xcache и memory. memory использует мемкеш, xcache - использует XCache
 $config['sys']['cache']['dir']    = '___path.root.server___/tmp/';       // каталог для файлового кеша, также используется для временных картинок. По умолчанию подставляем каталог для хранения сессий
 $config['sys']['cache']['prefix'] = 'livestreet_cache'; // префикс кеширования, чтоб можно было на одной машине держать несколько сайтов с общим кешевым хранилищем
 $config['sys']['cache']['directory_level'] = 1;         // уровень вложенности директорий файлового кеша
@@ -187,6 +196,10 @@ $config['module']['blog']['collective_good'] = -3;   // рейтинг топи�
 $config['module']['blog']['index_good']      =  8;   // Рейтинг топика выше которого(включительно) он попадает на главную
 $config['module']['blog']['encrypt']         = 'livestreet'; // Ключ XXTEA шифрования идентификаторов в ссылках приглашения в блоги
 $config['module']['blog']['avatar_size'] = array(100,64,48,24,0); // Список размеров аватаров у блога. 0 - исходный размер
+$config['module']['blog']['category_allow'] = true;  		// Разрешить использование категорий бля блогов
+$config['module']['blog']['category_only_admin'] = true;  	// Задавать и менять категории для блога может только админ
+$config['module']['blog']['category_only_children'] = true;	// Для блога можно выбрать только конечную категорию, у которой нет других вложенных
+$config['module']['blog']['category_allow_empty'] = true;	// Разрешить блоги без категории
 // Модуль Topic
 $config['module']['topic']['new_time']   = 60*60*24*1;  // Время в секундах в течении которого топик считается новым
 $config['module']['topic']['per_page']   = 10;          // Число топиков на одну страницу
@@ -222,18 +235,16 @@ $config['module']['comment']['nested_page_reverse'] = true; 	// Определя
 $config['module']['comment']['favourite_target_allow'] = array('topic'); 	// Список типов комментов, которые разрешено добавлять в избранное
 // Модуль Talk
 $config['module']['talk']['per_page']   = 30;           // Число приватных сообщений на одну страницу
-$config['module']['talk']['reload']     = false;
-$config['module']['talk']['request']    = 60;
-$config['module']['talk']['period']     = 20000;
-$config['module']['talk']['max_errors'] = 4;
 $config['module']['talk']['encrypt']    = 'livestreet'; // Ключ XXTEA шифрования идентификаторов в ссылках
 $config['module']['talk']['max_users']	= 15; // Максимальное число адресатов в одном личном сообщении
 // Модуль Lang
 $config['module']['lang']['delete_undefined'] = true;   // Если установлена true, то модуль будет автоматически удалять из языковых конструкций переменные вида %%var%%, по которым не была произведена замена
 // Модуль Notify
-$config['module']['notify']['delayed']        = false;  // Указывает на необходимость использовать режим отложенной рассылки сообщений на email
-$config['module']['notify']['insert_single']  = false;  // Если опция установлена в true, систему будет собирать записи заданий удаленной публикации, для вставки их в базу единым INSERT
-$config['module']['notify']['per_process']    = 10;     // Количество отложенных заданий, обрабатываемых одним крон-процессом
+$config['module']['notify']['delayed']       = false;    // Указывает на необходимость использовать режим отложенной рассылки сообщений на email
+$config['module']['notify']['insert_single'] = false;    // Если опция установлена в true, систему будет собирать записи заданий удаленной публикации, для вставки их в базу единым INSERT
+$config['module']['notify']['per_process']   = 10;       // Количество отложенных заданий, обрабатываемых одним крон-процессом
+$config['module']['notify']['dir']           = 'emails'; // Путь до папки с емэйлами относительно шаблона
+$config['module']['notify']['prefix']        = 'email';  // Префикс шаблонов емэйлов
 // Модуль Image
 $config['module']['image']['default']['watermark_use']        = false;
 $config['module']['image']['default']['watermark_type']       = 'text';
@@ -261,7 +272,6 @@ $config['module']['image']['foto']['round_corner']   = false;
 $config['module']['image']['topic']['watermark_use']  = false;
 $config['module']['image']['topic']['round_corner']   = false;
 // Модуль Security
-$config['module']['security']['key']   = "livestreet_security_key"; // ключ сессии для хранения security-кода
 $config['module']['security']['hash']  = "livestreet_security_key"; // "примесь" к строке, хешируемой в качестве security-кода
 
 $config['module']['userfeed']['count_default'] = 10; // Число топиков в ленте по умолчанию
@@ -327,6 +337,7 @@ $config['db']['table']['prefix'] = 'prefix_';
 
 $config['db']['table']['user']                = '___db.table.prefix___user';
 $config['db']['table']['blog']                = '___db.table.prefix___blog';
+$config['db']['table']['blog_category']                = '___db.table.prefix___blog_category';
 $config['db']['table']['topic']               = '___db.table.prefix___topic';
 $config['db']['table']['topic_tag']           = '___db.table.prefix___topic_tag';
 $config['db']['table']['comment']             = '___db.table.prefix___comment';
@@ -345,10 +356,6 @@ $config['db']['table']['user_administrator']  = '___db.table.prefix___user_admin
 $config['db']['table']['comment_online']      = '___db.table.prefix___comment_online';
 $config['db']['table']['invite']              = '___db.table.prefix___invite';
 $config['db']['table']['page']                = '___db.table.prefix___page';
-$config['db']['table']['city']                = '___db.table.prefix___city';
-$config['db']['table']['city_user']           = '___db.table.prefix___city_user';
-$config['db']['table']['country']             = '___db.table.prefix___country';
-$config['db']['table']['country_user']        = '___db.table.prefix___country_user';
 $config['db']['table']['reminder']            = '___db.table.prefix___reminder';
 $config['db']['table']['session']             = '___db.table.prefix___session';
 $config['db']['table']['notify_task']         = '___db.table.prefix___notify_task';
@@ -427,27 +434,22 @@ $config['block']['rule_index_blog'] = array(
 		),
 	'clear' => false,
 );
-
+$config['block']['rule_index'] = array(
+	'action'  => array( 'index' ),
+	'blocks'  => array( 'right' => array('blogNav'=>array('priority'=>500)) ),
+);
 $config['block']['rule_topic_type'] = array(
 	'action'  => array(
 		'link'     => array('add','edit'),
 		'question' => array('add','edit'),
 		'topic'    => array('add','edit'),
-		'photoset'    => array('add','edit')
+		'photoset' => array('add','edit')
 	),
-	'blocks'  => array( 'right' => array('blocks/block.blogInfo.tpl') ),
-);
-$config['block']['rule_people'] = array(
-	'action'  => array( 'people' ),
-	'blocks'  => array( 'right' => array('actions/ActionPeople/sidebar.tpl') ),
+	'blocks'  => array( 'right' => array('blocks/block.blogInfo.tpl', 'blocks/block.blogInfoNote.tpl') ),
 );
 $config['block']['rule_personal_blog'] = array(
 	'action'  => array( 'personal_blog' ),
 	'blocks'  => array( 'right' => array('stream','tags') ),
-);
-$config['block']['rule_profile'] = array(
-	'action'  => array( 'profile', 'talk', 'settings' ),
-	'blocks'  => array( 'right' => array('actions/ActionProfile/sidebar.tpl') ),
 );
 $config['block']['rule_tag'] = array(
 	'action'  => array( 'tag' ),
@@ -455,7 +457,12 @@ $config['block']['rule_tag'] = array(
 );
 $config['block']['rule_blogs'] = array(
 	'action'  => array( 'blogs' ),
-	'blocks'  => array( 'right' => array('stream') ),
+	'blocks'  => array( 
+		'right' => array(
+			'blocks/block.blogAdd.tpl' => array('priority' => 100),
+			'blogCategories' => array('priority' => 50)
+		) 
+	),
 );
 
 $config['block']['userfeedBlogs'] = array(
@@ -470,6 +477,7 @@ $config['block']['userfeedUsers'] = array(
 	'action'  => array('feed'),
 	'blocks'  => array(
                     'right' => array(
+                        'userfeedFriends'=> array(),
                         'userfeedUsers'=> array()
                     )
                 )
@@ -483,69 +491,108 @@ $config['block']['rule_blog_info'] = array(
 		),
 	'clear' => false,
 );
+$config['block']['rule_users'] = array(
+	'action' => array('people'),
+	'blocks' => array(
+		'right' => array(
+			'blocks/block.usersStatistics.tpl',
+			'tagsCountry',
+			'tagsCity',
+		)
+	)
+);
+$config['block']['rule_profile'] = array(
+	'action' => array( 'profile', 'talk', 'settings' ),
+	'blocks' => array( 
+		'right' => array(
+			'blocks/block.userPhoto.tpl'   =>array('priority' => 100),
+			'blocks/block.userActions.tpl' =>array('priority' => 50),
+			'blocks/block.userNote.tpl'    =>array('priority' => 25),
+			'blocks/block.userNav.tpl'     =>array('priority' => 1),
+		) 
+	)
+);
 
 
-$config['head']['default']['js']  = array(
-	"___path.root.engine_lib___/external/html5shiv.js" => array('browser'=>'lt IE 9'),
-	"___path.root.engine_lib___/external/jquery/jquery.js",
-	"___path.root.engine_lib___/external/jquery/jquery-ui.js",
-	"___path.root.engine_lib___/external/jquery/jquery.notifier.js",
-	"___path.root.engine_lib___/external/jquery/jquery.jqmodal.js",
-	"___path.root.engine_lib___/external/jquery/jquery.scrollto.js",
-	"___path.root.engine_lib___/external/jquery/jquery.rich-array.min.js",
-	"___path.root.engine_lib___/external/jquery/markitup/jquery.markitup.js",
-	"___path.root.engine_lib___/external/jquery/jquery.form.js",
-	"___path.root.engine_lib___/external/jquery/jquery.jqplugin.js",
-	"___path.root.engine_lib___/external/jquery/jquery.cookie.js",
-	"___path.root.engine_lib___/external/jquery/jquery.serializejson.js",
-	"___path.root.engine_lib___/external/jquery/jquery.file.js",
-	"___path.root.engine_lib___/external/jquery/jcrop/jquery.Jcrop.js",
-	"___path.root.engine_lib___/external/jquery/poshytip/jquery.poshytip.js",
-	"___path.root.engine_lib___/external/jquery/jquery.placeholder.min.js",
-	"___path.root.engine_lib___/external/jquery/jquery.charcount.js",
-	"___path.root.engine_lib___/external/prettify/prettify.js",
-	"___path.root.engine_lib___/internal/template/js/main.js",
-	"___path.root.engine_lib___/internal/template/js/favourite.js",
-	"___path.root.engine_lib___/internal/template/js/blocks.js",
-	"___path.root.engine_lib___/internal/template/js/talk.js",
-	"___path.root.engine_lib___/internal/template/js/vote.js",
-	"___path.root.engine_lib___/internal/template/js/poll.js",
-	"___path.root.engine_lib___/internal/template/js/subscribe.js",
-	"___path.root.engine_lib___/internal/template/js/infobox.js",
-	"___path.root.engine_lib___/internal/template/js/geo.js",
-	"___path.root.engine_lib___/internal/template/js/wall.js",
-	"___path.root.engine_lib___/internal/template/js/usernote.js",
-	"___path.root.engine_lib___/internal/template/js/comments.js",
-	"___path.root.engine_lib___/internal/template/js/blog.js",
-	"___path.root.engine_lib___/internal/template/js/user.js",
-	"___path.root.engine_lib___/internal/template/js/userfeed.js",
-	"___path.root.engine_lib___/internal/template/js/userfield.js",
-	"___path.root.engine_lib___/internal/template/js/stream.js",
-	"___path.root.engine_lib___/internal/template/js/photoset.js",
-	"___path.root.engine_lib___/internal/template/js/toolbar.js",
-	"___path.root.engine_lib___/internal/template/js/settings.js",
-	"___path.root.engine_lib___/internal/template/js/topic.js",
-	"___path.root.engine_lib___/internal/template/js/hook.js",
+
+$config['head']['default']['js'] = array(
+	/* Vendor libs */
+	"___path.static.framework___/js/vendor/html5shiv.js" => array('browser'=>'lt IE 9'),
+	"___path.static.framework___/js/vendor/jquery-1.9.1.min.js",
+	"___path.static.framework___/js/vendor/jquery-ui/js/jquery-ui-1.10.2.custom.min.js",
+	"___path.static.framework___/js/vendor/jquery-ui/js/localization/jquery-ui-datepicker-ru.js",
+	"___path.static.framework___/js/vendor/jquery.browser.js",
+	"___path.static.framework___/js/vendor/jquery.scrollto.js",
+	"___path.static.framework___/js/vendor/jquery.rich-array.min.js",
+	"___path.static.framework___/js/vendor/jquery.form.js",
+	"___path.static.framework___/js/vendor/jquery.jqplugin.js",
+	"___path.static.framework___/js/vendor/jquery.cookie.js",
+	"___path.static.framework___/js/vendor/jquery.serializejson.js",
+	"___path.static.framework___/js/vendor/jquery.file.js",
+	"___path.static.framework___/js/vendor/jcrop/jquery.Jcrop.js",
+	"___path.static.framework___/js/vendor/jquery.placeholder.min.js",
+	"___path.static.framework___/js/vendor/jquery.charcount.js",
+	"___path.static.framework___/js/vendor/jquery.imagesloaded.js",
+	"___path.static.framework___/js/vendor/notifier/jquery.notifier.js",
+	"___path.static.framework___/js/vendor/prettify/prettify.js",
+	"___path.static.framework___/js/vendor/prettyphoto/js/jquery.prettyphoto.js",
+
+	/* Core */
+	"___path.static.framework___/js/core/main.js",
+	"___path.static.framework___/js/core/hook.js",
+
+	/* User Interface */
+	"___path.static.framework___/js/ui/popup.js",
+	"___path.static.framework___/js/ui/dropdown.js",
+	"___path.static.framework___/js/ui/tooltip.js",
+	"___path.static.framework___/js/ui/popover.js",
+	"___path.static.framework___/js/ui/tab.js",
+	"___path.static.framework___/js/ui/modal.js",
+	"___path.static.framework___/js/ui/toolbar.js",
+
+	/* LiveStreet */
+	"___path.static.framework___/js/livestreet/favourite.js",
+	"___path.static.framework___/js/livestreet/blocks.js",
+	"___path.static.framework___/js/livestreet/pagination.js",
+	"___path.static.framework___/js/livestreet/editor.js",
+	"___path.static.framework___/js/livestreet/talk.js",
+	"___path.static.framework___/js/livestreet/vote.js",
+	"___path.static.framework___/js/livestreet/poll.js",
+	"___path.static.framework___/js/livestreet/subscribe.js",
+	"___path.static.framework___/js/livestreet/geo.js",
+	"___path.static.framework___/js/livestreet/wall.js",
+	"___path.static.framework___/js/livestreet/usernote.js",
+	"___path.static.framework___/js/livestreet/comments.js",
+	"___path.static.framework___/js/livestreet/blog.js",
+	"___path.static.framework___/js/livestreet/user.js",
+	"___path.static.framework___/js/livestreet/userfeed.js",
+	"___path.static.framework___/js/livestreet/stream.js",
+	"___path.static.framework___/js/livestreet/photoset.js",
+	"___path.static.framework___/js/livestreet/toolbar.js",
+	"___path.static.framework___/js/livestreet/settings.js",
+	"___path.static.framework___/js/livestreet/topic.js",
+	"___path.static.framework___/js/livestreet/admin.js",
+	"___path.static.framework___/js/livestreet/admin.userfield.js",
+	"___path.static.framework___/js/livestreet/captcha.js",
+	"___path.static.framework___/js/livestreet/init.js",
+
 	"http://yandex.st/share/share.js" => array('merge'=>false),
 );
+
 $config['head']['default']['css'] = array(
-	"___path.static.skin___/css/reset.css",
-	"___path.root.engine_lib___/external/jquery/markitup/skins/simple/style.css",
-	"___path.root.engine_lib___/external/jquery/markitup/sets/default/style.css",
-	"___path.root.engine_lib___/external/jquery/jcrop/jquery.Jcrop.css",
-	"___path.root.engine_lib___/external/prettify/prettify.css",
-	"___path.static.skin___/css/main.css",
-	"___path.static.skin___/css/grid.css",
-	"___path.static.skin___/css/common.css",
-	"___path.static.skin___/css/forms.css",
-	"___path.static.skin___/css/popups.css",
-	"___path.static.skin___/css/topic.css",
-	"___path.static.skin___/css/comments.css",
-	"___path.static.skin___/css/blocks.css",
-	"___path.static.skin___/css/infobox.css",
-	"___path.static.skin___/css/jquery.jqmodal.css",
-	"___path.static.skin___/css/jquery.notifier.css",
-	"___path.static.skin___/css/smoothness/jquery-ui.css",
+	// Framework styles
+	"___path.static.framework___/css/reset.css",
+	"___path.static.framework___/css/helpers.css",
+	"___path.static.framework___/css/text.css",
+	"___path.static.framework___/css/dropdowns.css",
+	"___path.static.framework___/css/buttons.css",
+	"___path.static.framework___/css/forms.css",
+	"___path.static.framework___/css/navs.css",
+	"___path.static.framework___/css/modals.css",
+	"___path.static.framework___/css/tooltip.css",
+	"___path.static.framework___/css/popover.css",
+	"___path.static.framework___/css/alerts.css",
+	"___path.static.framework___/css/toolbar.css"
 );
 
 /**

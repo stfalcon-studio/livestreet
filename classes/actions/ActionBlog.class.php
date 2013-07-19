@@ -187,6 +187,11 @@ class ActionBlog extends Action {
 		}
 		$this->Hook_Run('blog_add_show');
 		/**
+		 * Прогружаем категории блогов
+		 */
+		$aCategories=$this->Blog_GetCategoriesTree();
+		$this->Viewer_Assign('aBlogCategories',$aCategories);
+		/**
 		 * Запускаем проверку корректности ввода полей при добалении блога.
 		 * Дополнительно проверяем, что был отправлен POST запрос.
 		 */
@@ -198,16 +203,16 @@ class ActionBlog extends Action {
 		 */
 		$oBlog=Engine::GetEntity('Blog');
 		$oBlog->setOwnerId($this->oUserCurrent->getId());
-		$oBlog->setTitle(strip_tags(getRequest('blog_title')));
+		$oBlog->setTitle(strip_tags(getRequestStr('blog_title')));
 		/**
 		 * Парсим текст на предмет разных ХТМЛ тегов
 		 */
-		$sText=$this->Text_Parser(getRequest('blog_description'));
+		$sText=$this->Text_Parser(getRequestStr('blog_description'));
 		$oBlog->setDescription($sText);
-		$oBlog->setType(getRequest('blog_type'));
+		$oBlog->setType(getRequestStr('blog_type'));
 		$oBlog->setDateAdd(date("Y-m-d H:i:s"));
-		$oBlog->setLimitRatingTopic(getRequest('blog_limit_rating_topic'));
-		$oBlog->setUrl((string)getRequest('blog_url'));
+		$oBlog->setLimitRatingTopic(getRequestStr('blog_limit_rating_topic'));
+		$oBlog->setUrl(getRequestStr('blog_url'));
 		$oBlog->setAvatar(null);
 		/**
 		 * Загрузка аватара, делаем ресайзы
@@ -221,6 +226,16 @@ class ActionBlog extends Action {
 			}
 		}
 		/**
+		 * Устанавливаем категорию для блога
+		 */
+		if (Config::Get('module.blog.category_allow') and ($this->oUserCurrent->isAdministrator() or !Config::Get('module.blog.category_only_admin'))) {
+			if (getRequestStr('blog_category')) {
+				$oBlog->setCategoryId(getRequestStr('blog_category'));
+			} elseif (Config::Get('module.blog.category_allow_empty')) {
+				$oBlog->setCategoryId(null);
+			}
+		}
+		/**
 		 * Создаём блог
 		 */
 		$this->Hook_Run('blog_add_before', array('oBlog'=>$oBlog));
@@ -230,6 +245,12 @@ class ActionBlog extends Action {
 			 * Получаем блог, это для получение полного пути блога, если он в будущем будет зависит от других сущностей(компании, юзер и т.п.)
 			 */
 			$oBlog->Blog_GetBlogById($oBlog->getId());
+			/**
+			 * Меняем количество блогов в категории
+			 */
+			if ($oBlog->getCategoryId()) {
+				$this->Blog_IncreaseCategoryCountBlogs($oBlog->getCategoryId());
+			}
 
 			/**
 			 * Добавляем событие в ленту
@@ -279,6 +300,11 @@ class ActionBlog extends Action {
 
 		$this->Hook_Run('blog_edit_show',array('oBlog'=>$oBlog));
 		/**
+		 * Прогружаем категории блогов
+		 */
+		$aCategories=$this->Blog_GetCategoriesTree();
+		$this->Viewer_Assign('aBlogCategories',$aCategories);
+		/**
 		 * Устанавливаем title страницы
 		 */
 		$this->Viewer_AddHtmlTitle($oBlog->getTitle());
@@ -299,23 +325,34 @@ class ActionBlog extends Action {
 			if (!$this->checkBlogFields($oBlog)) {
 				return false;
 			}
-			$oBlog->setTitle(strip_tags(getRequest('blog_title')));
+			$oBlog->setTitle(strip_tags(getRequestStr('blog_title')));
 			/**
 			 * Парсим описание блога на предмет ХТМЛ тегов
 			 */
-			$sText=$this->Text_Parser(getRequest('blog_description'));
+			$sText=$this->Text_Parser(getRequestStr('blog_description'));
 			$oBlog->setDescription($sText);
 			/**
 			 * Сбрасываем кеш, если поменяли тип блога
 			 * Нужна доработка, т.к. в этом блоге могут быть топики других юзеров
 			 */
-			if ($oBlog->getType()!=getRequest('blog_type')) {
+			if ($oBlog->getType()!=getRequestStr('blog_type')) {
 				$this->Cache_Clean(Zend_Cache::CLEANING_MODE_MATCHING_TAG,array("topic_update_user_{$oBlog->getOwnerId()}"));
 			}
-			$oBlog->setType(getRequest('blog_type'));
-			$oBlog->setLimitRatingTopic(getRequest('blog_limit_rating_topic'));
+			$oBlog->setType(getRequestStr('blog_type'));
+			$oBlog->setLimitRatingTopic(getRequestStr('blog_limit_rating_topic'));
 			if ($this->oUserCurrent->isAdministrator()) {
-				$oBlog->setUrl((string)getRequest('blog_url'));	// разрешаем смену URL блога только админу
+				$oBlog->setUrl(getRequestStr('blog_url'));	// разрешаем смену URL блога только админу
+			}
+			/**
+			 * Устанавливаем категорию для блога
+			 */
+			$iCategoryIdOld=$oBlog->getCategoryId();
+			if (Config::Get('module.blog.category_allow') and ($this->oUserCurrent->isAdministrator() or !Config::Get('module.blog.category_only_admin'))) {
+				if (getRequestStr('blog_category')) {
+					$oBlog->setCategoryId(getRequestStr('blog_category'));
+				} elseif (Config::Get('module.blog.category_allow_empty')) {
+					$oBlog->setCategoryId(null);
+				}
 			}
 			/**
 			 * Загрузка аватара, делаем ресайзы
@@ -341,6 +378,17 @@ class ActionBlog extends Action {
 			$this->Hook_Run('blog_edit_before', array('oBlog'=>$oBlog));
 			if ($this->Blog_UpdateBlog($oBlog)) {
 				$this->Hook_Run('blog_edit_after', array('oBlog'=>$oBlog));
+
+				/**
+				 * Меняем количество блогов в категории
+				 */
+				if ($iCategoryIdOld and $iCategoryIdOld!=$oBlog->getCategoryId()) {
+					$this->Blog_DecreaseCategoryCountBlogs($iCategoryIdOld);
+				}
+				if ($oBlog->getCategoryId()) {
+					$this->Blog_IncreaseCategoryCountBlogs($oBlog->getCategoryId());
+				}
+
 				Router::Location($oBlog->getUrlFull());
 			} else {
 				$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
@@ -353,6 +401,7 @@ class ActionBlog extends Action {
 			$_REQUEST['blog_title']=$oBlog->getTitle();
 			$_REQUEST['blog_url']=$oBlog->getUrl();
 			$_REQUEST['blog_type']=$oBlog->getType();
+			$_REQUEST['blog_category']=$oBlog->getCategoryId();
 			$_REQUEST['blog_description']=$oBlog->getDescription();
 			$_REQUEST['blog_limit_rating_topic']=$oBlog->getLimitRatingTopic();
 			$_REQUEST['blog_id']=$oBlog->getId();
@@ -399,6 +448,7 @@ class ActionBlog extends Action {
 				$aUserRank=array();
 			}
 			foreach ($aUserRank as $sUserId => $sRank) {
+				$sRank=(string)$sRank;
 				if (!($oBlogUser=$this->Blog_GetBlogUserByBlogIdAndUserId($oBlog->getId(),$sUserId))) {
 					$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 					break;
@@ -475,7 +525,7 @@ class ActionBlog extends Action {
 		if($oBlog->getType()=='close') {
 			$aBlogUsersInvited=$this->Blog_GetBlogUsersByBlogId($oBlog->getId(),ModuleBlog::BLOG_USER_ROLE_INVITE,null);
 			$this->Viewer_Assign('aBlogUsersInvited',$aBlogUsersInvited['collection']);
-			$this->Viewer_AddBlock('right','actions/ActionBlog/invited.tpl');
+			$this->Viewer_AddBlock('right','blocks/block.blogInvite.tpl');
 		}
 	}
 	/**
@@ -498,14 +548,14 @@ class ActionBlog extends Action {
 		/**
 		 * Проверяем есть ли название блога
 		 */
-		if (!func_check(getRequest('blog_title'),'text',2,200)) {
+		if (!func_check(getRequestStr('blog_title'),'text',2,200)) {
 			$this->Message_AddError($this->Lang_Get('blog_create_title_error'),$this->Lang_Get('error'));
 			$bOk=false;
 		} else {
 			/**
 			 * Проверяем есть ли уже блог с таким названием
 			 */
-			if ($oBlogExists=$this->Blog_GetBlogByTitle(getRequest('blog_title'))) {
+			if ($oBlogExists=$this->Blog_GetBlogByTitle(getRequestStr('blog_title'))) {
 				if (!$oBlog or $oBlog->getId()!=$oBlogExists->getId()) {
 					$this->Message_AddError($this->Lang_Get('blog_create_title_error_unique'),$this->Lang_Get('error'));
 					$bOk=false;
@@ -517,9 +567,9 @@ class ActionBlog extends Action {
 		 * Проверяем есть ли URL блога, с заменой всех пробельных символов на "_"
 		 */
 		if (!$oBlog or $this->oUserCurrent->isAdministrator()) {
-			$blogUrl=preg_replace("/\s+/",'_',(string)getRequest('blog_url'));
+			$blogUrl=preg_replace("/\s+/",'_',getRequestStr('blog_url'));
 			$_REQUEST['blog_url']=$blogUrl;
-			if (!func_check(getRequest('blog_url'),'login',2,50)) {
+			if (!func_check(getRequestStr('blog_url'),'login',2,50)) {
 				$this->Message_AddError($this->Lang_Get('blog_create_url_error'),$this->Lang_Get('error'));
 				$bOk=false;
 			}
@@ -527,14 +577,14 @@ class ActionBlog extends Action {
 		/**
 		 * Проверяем на счет плохих УРЛов
 		 */
-		if (in_array(getRequest('blog_url'),$this->aBadBlogUrl)) {
+		if (in_array(getRequestStr('blog_url'),$this->aBadBlogUrl)) {
 			$this->Message_AddError($this->Lang_Get('blog_create_url_error_badword').' '.join(',',$this->aBadBlogUrl),$this->Lang_Get('error'));
 			$bOk=false;
 		}
 		/**
 		 * Проверяем есть ли уже блог с таким URL
 		 */
-		if ($oBlogExists=$this->Blog_GetBlogByUrl((string)getRequest('blog_url'))) {
+		if ($oBlogExists=$this->Blog_GetBlogByUrl(getRequestStr('blog_url'))) {
 			if (!$oBlog or $oBlog->getId()!=$oBlogExists->getId()) {
 				$this->Message_AddError($this->Lang_Get('blog_create_url_error_unique'),$this->Lang_Get('error'));
 				$bOk=false;
@@ -543,23 +593,43 @@ class ActionBlog extends Action {
 		/**
 		 * Проверяем есть ли описание блога
 		 */
-		if (!func_check(getRequest('blog_description'),'text',10,3000)) {
+		if (!func_check(getRequestStr('blog_description'),'text',10,3000)) {
 			$this->Message_AddError($this->Lang_Get('blog_create_description_error'),$this->Lang_Get('error'));
 			$bOk=false;
 		}
 		/**
 		 * Проверяем доступные типы блога для создания
 		 */
-		if (!in_array(getRequest('blog_type'),array('open','close'))) {
+		if (!$this->Blog_IsAllowBlogType(getRequestStr('blog_type'))) {
 			$this->Message_AddError($this->Lang_Get('blog_create_type_error'),$this->Lang_Get('error'));
 			$bOk=false;
 		}
 		/**
 		 * Преобразуем ограничение по рейтингу в число
 		 */
-		if (!func_check(getRequest('blog_limit_rating_topic'),'float')) {
+		if (!func_check(getRequestStr('blog_limit_rating_topic'),'float')) {
 			$this->Message_AddError($this->Lang_Get('blog_create_rating_error'),$this->Lang_Get('error'));
 			$bOk=false;
+		}
+		/**
+		 * Проверяем категорию блога
+		 */
+		if (Config::Get('module.blog.category_allow')) {
+			if ($oCategory=$this->Blog_GetCategoryById(getRequestStr('blog_category'))) {
+				/**
+				 * Проверяем есть ли у этой категории дочернии
+				 */
+				if (Config::Get('module.blog.category_only_children') and $this->Blog_GetCategoriesByPid($oCategory->getId())) {
+					$this->Message_AddError($this->Lang_Get('blog_create_category_error_only_children'),$this->Lang_Get('error'));
+					$bOk=false;
+				}
+			} else {
+				$_REQUEST['blog_category']=null;
+				if (!Config::Get('module.blog.category_allow_empty')) {
+					$this->Message_AddError($this->Lang_Get('blog_create_category_error'),$this->Lang_Get('error'));
+					$bOk=false;
+				}
+			}
 		}
 		/**
 		 * Выполнение хуков
@@ -573,8 +643,8 @@ class ActionBlog extends Action {
 	 */
 	protected function EventTopics() {
 		$sPeriod=1; // по дефолту 1 день
-		if (in_array(getRequest('period'),array(1,7,30,'all'))) {
-			$sPeriod=getRequest('period');
+		if (in_array(getRequestStr('period'),array(1,7,30,'all'))) {
+			$sPeriod=getRequestStr('period');
 		}
 		$sShowType=$this->sCurrentEvent;
 		if (!in_array($sShowType,array('discussed','top'))) {
@@ -738,6 +808,7 @@ class ActionBlog extends Action {
 		$sTextSeo=strip_tags($oTopic->getText());
 		$this->Viewer_SetHtmlDescription(func_text_words($sTextSeo, Config::Get('seo.description_words_count')));
 		$this->Viewer_SetHtmlKeywords($oTopic->getTags());
+		$this->Viewer_SetHtmlCanonical($oTopic->getUrl());
 		/**
 		 * Вызов хуков
 		 */
@@ -812,8 +883,8 @@ class ActionBlog extends Action {
 	 */
 	protected function EventShowBlog() {
 		$sPeriod=1; // по дефолту 1 день
-		if (in_array(getRequest('period'),array(1,7,30,'all'))) {
-			$sPeriod=getRequest('period');
+		if (in_array(getRequestStr('period'),array(1,7,30,'all'))) {
+			$sPeriod=getRequestStr('period');
 		}
 		$sBlogUrl=$this->sCurrentEvent;
 		$sShowType=in_array($this->GetParamEventMatch(0,0),array('bad','new','newall','discussed','top')) ? $this->GetParamEventMatch(0,0) : 'good';
@@ -944,98 +1015,168 @@ class ActionBlog extends Action {
 		$this->Viewer_SetResponseAjax('json');
 		$this->SubmitComment();
 	}
+
+    /**
+     * Проверка на соответсвие коментария требованиям безопасности
+     *
+     * @param ModuleTopic_EntityTopic $oTopic
+     * @param string $sText
+     *
+     * @return bool result
+     */
+    protected function CheckComment($oTopic, $sText) {
+
+        $bOk = true;
+        /**
+         * Проверям авторизован ли пользователь
+         */
+        if (!$this->User_IsAuthorization()) {
+            $this->Message_AddErrorSingle($this->Lang_Get('need_authorization'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+        /**
+         * Проверяем топик
+         */
+        if (!$oTopic) {
+            $this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+        /**
+         * Возможность постить коммент в топик в черновиках
+         */
+        if (!$oTopic->getPublish() and $this->oUserCurrent->getId()!=$oTopic->getUserId() and !$this->oUserCurrent->isAdministrator()) {
+            $this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+        /**
+         * Проверяем разрешено ли постить комменты
+         */
+        if (!$this->ACL_CanPostComment($this->oUserCurrent,$oTopic) and !$this->oUserCurrent->isAdministrator()) {
+            $this->Message_AddErrorSingle($this->Lang_Get('topic_comment_acl'),$this->Lang_Get('error'));
+            return;
+        }
+        /**
+         * Проверяем разрешено ли постить комменты по времени
+         */
+        if (!$this->ACL_CanPostCommentTime($this->oUserCurrent) and !$this->oUserCurrent->isAdministrator()) {
+            $this->Message_AddErrorSingle($this->Lang_Get('topic_comment_limit'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+        /**
+         * Проверяем запрет на добавления коммента автором топика
+         */
+        if ($oTopic->getForbidComment()) {
+            $this->Message_AddErrorSingle($this->Lang_Get('topic_comment_notallow'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+        /**
+         * Проверяем текст комментария
+         */
+        if (!func_check($sText,'text',2,10000)) {
+            $this->Message_AddErrorSingle($this->Lang_Get('topic_comment_add_text_error'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+
+        $this->Hook_Run('comment_check', array('oTopic'=>$oTopic, 'sText'=>$sText, 'bOk'=>&$bOk));
+
+        return $bOk;
+    }
+
+    /**
+     * Проверка на соответсвие коментария родительскому коментарию
+     *
+     * @param ModuleTopic_EntityTopic $oTopic
+     * @param string $sText
+     * @param ModuleComment_EntityComment $oCommentParent
+     *
+     * @return bool result
+     */
+    protected function CheckParentComment($oTopic, $sText, $oCommentParent) {
+
+        $sParentId = 0;
+        if ($oCommentParent) {
+            $sParentId = $oCommentParent->GetCommentId();
+        }
+
+        $bOk = true;
+        /**
+         * Проверям на какой коммент отвечаем
+         */
+        if (!func_check($sParentId,'id')) {
+            $this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+
+        if ($sParentId) {
+            /**
+             * Проверяем существует ли комментарий на который отвечаем
+             */
+            if (!($oCommentParent)) {
+                $this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+                $bOk = false;
+            }
+            /**
+             * Проверяем из одного топика ли новый коммент и тот на который отвечаем
+             */
+            if ($oCommentParent->getTargetId()!=$oTopic->getId()) {
+                $this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+                $bOk = false;
+            }
+        } else {
+            $sParentId = NULL;
+        }
+
+        /**
+         * Проверка на дублирующий коммент
+         */
+        if ($this->Comment_GetCommentUnique($oTopic->getId(),'topic',$this->oUserCurrent->getId(),$sParentId,md5($sText))) {
+            $this->Message_AddErrorSingle($this->Lang_Get('topic_comment_spam'),$this->Lang_Get('error'));
+            $bOk = false;
+        }
+
+        $this->Hook_Run('comment_check_parent', array('oTopic'=>$oTopic, 'sText'=>$sText, 'oCommentParent'=>$oCommentParent, 'bOk'=>&$bOk));
+
+        return $bOk;
+    }
+
 	/**
 	 * Обработка добавление комментария к топику
 	 *
 	 */
 	protected function SubmitComment() {
-		/**
-		 * Проверям авторизован ли пользователь
-		 */
-		if (!$this->User_IsAuthorization()) {
-			$this->Message_AddErrorSingle($this->Lang_Get('need_authorization'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Проверяем топик
-		 */
-		if (!($oTopic=$this->Topic_GetTopicById(getRequest('cmt_target_id')))) {
-			$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Возможность постить коммент в топик в черновиках
-		 */
-		if (!$oTopic->getPublish() and $this->oUserCurrent->getId()!=$oTopic->getUserId() and !$this->oUserCurrent->isAdministrator()) {
-			$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Проверяем разрешено ли постить комменты
-		 */
-		if (!$this->ACL_CanPostComment($this->oUserCurrent) and !$this->oUserCurrent->isAdministrator()) {
-			$this->Message_AddErrorSingle($this->Lang_Get('topic_comment_acl'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Проверяем разрешено ли постить комменты по времени
-		 */
-		if (!$this->ACL_CanPostCommentTime($this->oUserCurrent) and !$this->oUserCurrent->isAdministrator()) {
-			$this->Message_AddErrorSingle($this->Lang_Get('topic_comment_limit'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Проверяем запрет на добавления коммента автором топика
-		 */
-		if ($oTopic->getForbidComment()) {
-			$this->Message_AddErrorSingle($this->Lang_Get('topic_comment_notallow'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Проверяем текст комментария
-		 */
-		$sText=$this->Text_Parser(getRequest('comment_text'));
-		if (!func_check($sText,'text',2,10000)) {
-			$this->Message_AddErrorSingle($this->Lang_Get('topic_comment_add_text_error'),$this->Lang_Get('error'));
-			return;
-		}
-		/**
-		 * Проверям на какой коммент отвечаем
-		 */
-		$sParentId=(int)getRequest('reply');
-		if (!func_check($sParentId,'id')) {
-			$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
-			return;
-		}
-		$oCommentParent=null;
-		if ($sParentId!=0) {
-			/**
-			 * Проверяем существует ли комментарий на который отвечаем
-			 */
-			if (!($oCommentParent=$this->Comment_GetCommentById($sParentId))) {
-				$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
-				return;
-			}
-			/**
-			 * Проверяем из одного топика ли новый коммент и тот на который отвечаем
-			 */
-			if ($oCommentParent->getTargetId()!=$oTopic->getId()) {
-				$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
-				return;
-			}
-		} else {
-			/**
-			 * Корневой комментарий
-			 */
-			$sParentId=null;
-		}
-		/**
-		 * Проверка на дублирующий коммент
-		 */
-		if ($this->Comment_GetCommentUnique($oTopic->getId(),'topic',$this->oUserCurrent->getId(),$sParentId,md5($sText))) {
-			$this->Message_AddErrorSingle($this->Lang_Get('topic_comment_spam'),$this->Lang_Get('error'));
-			return;
-		}
+
+        $oTopic = $this->Topic_GetTopicById(getRequestStr('cmt_target_id'));
+        $sText = $this->Text_Parser(getRequestStr('comment_text'));
+        $sParentId = (int)getRequest('reply');
+        $oCommentParent = null;
+
+        if (!$sParentId) {
+            /**
+             * Корневой комментарий
+             */
+            $sParentId=null;
+        }
+        else {
+            /**
+             * Родительский комментарий
+             */
+            $oCommentParent=$this->Comment_GetCommentById($sParentId);
+        }
+
+        /**
+         * Проверка на соответсвие коментария требованиям безопасности
+         */
+        if (!$this->CheckComment($oTopic, $sText)) {
+            return;
+        }
+
+        /**
+         * Проверка на соответсвие коментария родительскому коментарию
+         */
+        if (!$this->CheckParentComment($oTopic, $sText, $oCommentParent)) {
+            return;
+        }
+
 		/**
 		 * Создаём коммент
 		 */
@@ -1091,7 +1232,7 @@ class ActionBlog extends Action {
 			/**
 			 * Отправка уведомления автору топика
 			 */
-			$this->Subscribe_Send('topic_new_comment',$oTopic->getId(),'notify.comment_new.tpl',$this->Lang_Get('notify_subject_comment_new'),array(
+			$this->Subscribe_Send('topic_new_comment',$oTopic->getId(),Config::Get('module.notify.prefix').'.comment_new.tpl',$this->Lang_Get('notify_subject_comment_new'),array(
 				'oTopic' => $oTopic,
 				'oComment' => $oCommentNew,
 				'oUserComment' => $this->oUserCurrent,
@@ -1123,14 +1264,21 @@ class ActionBlog extends Action {
 		/**
 		 * Топик существует?
 		 */
-		$idTopic=getRequest('idTarget',null,'post');
+		$idTopic=getRequestStr('idTarget',null,'post');
 		if (!($oTopic=$this->Topic_GetTopicById($idTopic))) {
 			$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 			return;
 		}
+		/**
+		 * Есть доступ к комментариям этого топика? Закрытый блог?
+		 */
+		if (!$this->ACL_IsAllowShowBlog($oTopic->getBlog(),$this->oUserCurrent)) {
+			$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
+			return;
+		}
 
-		$idCommentLast=getRequest('idCommentLast',null,'post');
-		$selfIdComment=getRequest('selfIdComment',null,'post');
+		$idCommentLast=getRequestStr('idCommentLast',null,'post');
+		$selfIdComment=getRequestStr('selfIdComment',null,'post');
 		$aComments=array();
 		/**
 		 * Если используется постраничность, возвращаем только добавленный комментарий
@@ -1190,7 +1338,7 @@ class ActionBlog extends Action {
 		 */
 		$this->Viewer_SetResponseAjax('json');
 		$sUsers=getRequest('users',null,'post');
-		$sBlogId=getRequest('idBlog',null,'post');
+		$sBlogId=getRequestStr('idBlog',null,'post');
 		/**
 		 * Если пользователь не авторизирован, возвращаем ошибку
 		 */
@@ -1336,8 +1484,8 @@ class ActionBlog extends Action {
 		 * Устанавливаем формат Ajax ответа
 		 */
 		$this->Viewer_SetResponseAjax('json');
-		$sUserId=getRequest('idUser',null,'post');
-		$sBlogId=getRequest('idBlog',null,'post');
+		$sUserId=getRequestStr('idUser',null,'post');
+		$sBlogId=getRequestStr('idBlog',null,'post');
 		/**
 		 * Если пользователь не авторизирован, возвращаем ошибку
 		 */
@@ -1386,8 +1534,8 @@ class ActionBlog extends Action {
 		 * Устанавливаем формат Ajax ответа
 		 */
 		$this->Viewer_SetResponseAjax('json');
-		$sUserId=getRequest('idUser',null,'post');
-		$sBlogId=getRequest('idBlog',null,'post');
+		$sUserId=getRequestStr('idUser',null,'post');
+		$sBlogId=getRequestStr('idBlog',null,'post');
 		/**
 		 * Если пользователь не авторизирован, возвращаем ошибку
 		 */
@@ -1488,7 +1636,7 @@ class ActionBlog extends Action {
 		/**
 		 * Получаем код подтверждения из ревеста и дешефруем его
 		 */
-		$sCode=xxtea_decrypt(base64_decode(rawurldecode((string)getRequest('code'))), Config::Get('module.blog.encrypt'));
+		$sCode=xxtea_decrypt(base64_decode(rawurldecode(getRequestStr('code'))), Config::Get('module.blog.encrypt'));
 		if (!$sCode) {
 			return $this->EventNotFound();
 		}
@@ -1587,7 +1735,7 @@ class ActionBlog extends Action {
 		if (!$bAccess=$this->ACL_IsAllowDeleteBlog($oBlog,$this->oUserCurrent)) {
 			return parent::EventNotFound();
 		}
-		$aTopics =  $this->Topic_GetTopicsByBlogId($sBlogId);
+		$aTopics =  $this->Topic_GetTopicsByBlogId($sBlogId,1,100000); // нужно переделать функционал переноса топиков в дргугой блог
 		switch ($bAccess) {
 			case ModuleACL::CAN_DELETE_BLOG_EMPTY_ONLY :
 				if(is_array($aTopics) and count($aTopics)) {
@@ -1602,7 +1750,7 @@ class ActionBlog extends Action {
 				 *
 				 * (-1) - выбран пункт меню "удалить топики".
 				 */
-				if($sBlogIdNew=getRequest('topic_move_to') and ($sBlogIdNew!=-1) and is_array($aTopics) and count($aTopics)) {
+				if($sBlogIdNew=getRequestStr('topic_move_to') and ($sBlogIdNew!=-1) and is_array($aTopics) and count($aTopics)) {
 					if(!$oBlogNew = $this->Blog_GetBlogById($sBlogIdNew)){
 						$this->Message_AddErrorSingle($this->Lang_Get('blog_admin_delete_move_error'),$this->Lang_Get('error'),true);
 						Router::Location($oBlog->getUrlFull());
@@ -1644,7 +1792,7 @@ class ActionBlog extends Action {
 		 * Устанавливаем формат Ajax ответа
 		 */
 		$this->Viewer_SetResponseAjax('json');
-		$sBlogId=getRequest('idBlog',null,'post');
+		$sBlogId=getRequestStr('idBlog',null,'post');
 		/**
 		 * Определяем тип блога и получаем его
 		 */
@@ -1660,6 +1808,13 @@ class ActionBlog extends Action {
 		 */
 		if ($oBlog) {
 			$sText=$oBlog->getDescription();
+			
+			/**
+			 * если блог персональный — возвращаем текущий языковой эквивалент
+			 */
+			if ($sBlogId==0) {
+				$sText = $this->Lang_Get('blogs_personal_description');
+			}
 			$this->Viewer_AssignAjax('sText',$sText);
 		}
 	}
@@ -1682,7 +1837,7 @@ class ActionBlog extends Action {
 		/**
 		 * Блог существует?
 		 */
-		$idBlog=getRequest('idBlog',null,'post');
+		$idBlog=getRequestStr('idBlog',null,'post');
 		if (!($oBlog=$this->Blog_GetBlogById($idBlog))) {
 			$this->Message_AddErrorSingle($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 			return;

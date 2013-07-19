@@ -41,6 +41,7 @@ return array(
 	'blog_about' => 'About this blog',
 	'blog_expand_info' => 'More &darr;',
 	'blog_fold_info' => 'Fold &uarr;',
+	'blog_by_category_empty' => 'In this category, no blogs',
 	/**
 	 * Declensions
 	 */
@@ -115,6 +116,10 @@ return array(
 	'blog_delete' => 'Delete',
 	'blog_create' => 'Create new blog',
 	'blog_create_acl' => "You don't have enough power to create a blog",
+	'blog_create_category' => 'Category',
+	'blog_create_category_notice' => 'Blogs can assign a category, it will allow a more structured site',
+	'blog_create_category_error' => 'Could not find the category',
+	'blog_create_category_error_only_children' => 'You can select only the final category (without children)',
 	'blog_create_title' => "Blog's title",
 	'blog_create_title_notice' => "Blog's title should be meaningful.",
 	'blog_create_title_error' => "Blog's title should be at least 2 and upto 200 characters",
@@ -139,7 +144,8 @@ return array(
 	'blog_create_avatar' => 'Avatar',
 	'blog_create_avatar_error' => "Can't create avatar",
 	'blog_create_avatar_delete' => 'Remove',
-	'blog_create_submit' => 'Save',
+	'blog_create_submit' => 'Create',
+	'blog_create_update' => 'Update',
 	'blog_create_submit_notice' => 'Blog will be created after pushing "Save" button',
 	/**
 	 * Blog Administration
@@ -227,7 +233,7 @@ return array(
 	'topic_menu_add_question' => 'Question',
 	'topic_menu_add_link' => 'Link',
 	'topic_menu_add_photoset' => 'Photoset',
-	'topic_menu_saved' => 'Drafts',
+	'topic_menu_drafts' => 'Drafts',
 	'topic_menu_published' => 'Published',
 	/**
 	 * Topic Creation
@@ -259,6 +265,7 @@ return array(
 	'topic_create_publish_index' => 'force exit to the main page',
 	'topic_create_publish_index_notice' => "If you check this option you'll post this topic directly to the main page (option availiable to administrators only)",
 	'topic_create_submit_publish' => 'Publish',
+	'topic_create_submit_update' => 'Update',
 	'topic_create_submit_save' => 'Save to drafts',
 	'topic_create_submit_preview' => 'Preview',
 	'topic_create_submit_preview_close' => 'Close',
@@ -660,7 +667,7 @@ return array(
 	'settings_profile_photo_change' => 'Channge photo',
 	'settings_profile_photo_upload' => 'Upload photo',
 	'settings_profile_field_error_max' => 'You can not add more than %%count%% identical contacts',
-	'settings_profile_submit' => 'save profile',
+	'settings_profile_submit' => 'Save profile',
 	'settings_profile_submit_ok' => 'Profile successfully saved',
 	'settings_invite' => 'Invitations management',
 	'settings_invite_notice' => 'You can invite to the site of his friends to do this, simply enter their e-mail and click',
@@ -762,6 +769,10 @@ return array(
 	'block_friends_check' => 'Check all',
 	'block_friends_uncheck' => 'Uncheck',
 	'block_friends_empty' => 'Empty friends list',
+	'block_category_blog' => 'Categories',
+	'block_category_blog_all' => 'All',
+	'block_blog_navigator' => 'Navigation for blogs',
+	'block_blog_navigator_button' => 'View',
 	'site_history_back' => 'Go back',
 	'site_go_main' => 'Go to the main page',
 	/**
@@ -808,7 +819,7 @@ return array(
 	'talk_favourite_add_ok' => 'Message added to favourites',
 	'talk_favourite_add_no' => 'This message is not in your Favourites\' list',
 	'talk_favourite_add_already' => 'This message is already in your Favourites\' list',
-	'talk_favourite_del' => 'remove from favourites',
+	'talk_favourite_del' => 'Remove from favourites',
 	'talk_favourite_del_ok' => 'Message removed from Favourites\' list',
 	'talk_favourite_empty' => 'No letters to favorites',
 	'talk_filter_title' => 'Filter',
@@ -845,10 +856,12 @@ return array(
 	'talk_speaker_delete_ok' => 'Member <b>%%login%%</b> deleted successfully',
 	'talk_speaker_user_not_found' => 'User <b>%%login%%</b> is not a member of this message',
 	'talk_speaker_user_already_exist' => ' <b>%%login%%</b> is a member of this message already',
+	'talk_speaker_not_found' => 'User is not a member of this message', 
 	'talk_speaker_add_ok' => 'User <b>%%login%%</b> added successfully',
 	'talk_speaker_delete_by_self' => 'Member <b>%%login%%</b> deleted this message',
 	'talk_speaker_add_self' => 'You can\'t add yourself as a member',
 	'talk_not_found' => 'Message not found',
+	'talk_deleted' => 'This message has been deleted', 
 	/**
 	 * Userfeed
 	 */
@@ -925,10 +938,27 @@ return array(
 	'admin_header' => 'Admin panel',
 	'admin_list_plugins' => 'Manage plugins',
 	'admin_list_userfields' => 'Configuring custom fields',
+	'admin_list_blogcategory' => 'Settings categories of blogs',
 	'admin_list_restorecomment' => 'Rebuilding a tree comments',
 	'admin_list_recalcfavourite' => 'Recalculate counters of favorites',
 	'admin_list_recalcvote' => 'Recalculate counters of votes',
 	'admin_list_recalctopic' => 'Recalculate count topics of blogs',
+	/**
+	 * Setting categories of blogs
+	 */
+	'admin_blogcategory_add' => 'Create new category',
+	'admin_blogcategory_items_title' => 'Title',
+	'admin_blogcategory_items_url' => 'URL',
+	'admin_blogcategory_items_action' => 'Action',
+	'admin_blogcategory_items_delete_confirm' => 'Really delete this category with all attachments?',
+	'admin_blogcategory_form_add' => 'Create category',
+	'admin_blogcategory_form_edit' => 'Update category',
+	'admin_blogcategory_form_field_parent' => 'Attach to',
+	'admin_blogcategory_form_field_title' => 'Title',
+	'admin_blogcategory_form_field_url' => 'URL',
+	'admin_blogcategory_form_field_sort' => 'Sort',
+	'admin_blogcategory_form_add_submit' => 'Add',
+	'admin_blogcategory_form_edit_submit' => 'Save',
 	/**
 	 * Rating TOP
 	 */
@@ -1184,27 +1214,27 @@ return array(
 		'0' => '[UTC] Western European Time, Greenwich Mean Time',
 		'1' => '[UTC + 1] Central European Time, West African Time',
 		'2' => '[UTC + 2] Eastern European Time, Central African Time',
-		'3' => '[UTC + 3] Moscow Standard Time, Eastern African Time',
+		'3' => '[UTC + 3] Eastern African Time',
 		'3.5' => '[UTC + 3:30] Iran Standard Time',
-		'4' => '[UTC + 4] Gulf Standard Time, Samara Standard Time',
+		'4' => '[UTC + 4] Moscow Time, Gulf Standard Time',
 		'4.5' => '[UTC + 4:30] Afghanistan Time',
-		'5' => '[UTC + 5] Pakistan Standard Time, Yekaterinburg Standard Time',
+		'5' => '[UTC + 5] Pakistan Standard Time, Samara Standard Time',
 		'5.5' => '[UTC + 5:30] Indian Standard Time, Sri Lanka Time',
 		'5.75' => '[UTC + 5:45] Nepal Time',
-		'6' => '[UTC + 6] Bangladesh Time, Bhutan Time, Novosibirsk Standard Time',
+		'6' => '[UTC + 6] Bangladesh Time, Bhutan Time, Yekaterinburg Standard Time',
 		'6.5' => '[UTC + 6:30] Cocos Islands Time, Myanmar Time',
-		'7' => '[UTC + 7] Indochina Time, Krasnoyarsk Standard Time',
-		'8' => '[UTC + 8] Chinese Standard Time, Australian Western Standard Time, Irkutsk Standard Time',
+		'7' => '[UTC + 7] Indochina Time, Novosibirsk Time',
+		'8' => '[UTC + 8] Chinese Standard Time, Australian Western Standard Time, Krasnoyarsk Time',
 		'8.75' => '[UTC + 8:45] Southeastern Western Australia Standard Time',
-		'9' => '[UTC + 9] Japan Standard Time, Korea Standard Time, Chita Standard Time',
+		'9' => '[UTC + 9] Japan Standard Time, Korea Standard Time, Irkutsk Time',
 		'9.5' => '[UTC + 9:30] Australian Central Standard Time',
-		'10' => '[UTC + 10] Australian Eastern Standard Time, Vladivostok Standard Time',
+		'10' => '[UTC + 10] Australian Eastern Standard Time, Chita Time',
 		'10.5' => '[UTC + 10:30] Lord Howe Standard Time',
-		'11' => '[UTC + 11] Solomon Island Time, Magadan Standard Time',
+		'11' => '[UTC + 11] Solomon Island Time, Vladivostok Time',
 		'11.5' => '[UTC + 11:30] Norfolk Island Time',
-		'12' => '[UTC + 12] New Zealand Time, Fiji Time, Kamchatka Standard Time',
+		'12' => '[UTC + 12] New Zealand Time, Fiji Time, Magadan Time',
 		'12.75' => '[UTC + 12:45] Chatham Islands Time',
-		'13' => '[UTC + 13] Tonga Time, Phoenix Islands Time',
+		'13' => '[UTC + 13] Tonga Time, Phoenix Islands Time, Kamchatka Time',
 		'14' => '[UTC + 14] Line Island Time'
 	)
 );
