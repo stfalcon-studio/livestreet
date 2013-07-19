@@ -123,7 +123,7 @@ class ActionProfile extends Action {
 			$oEvenLast=end($aEvents);
 			$this->Viewer_Assign('iStreamLastId', $oEvenLast->getId());
 		}
-		$this->SetTemplateAction('stream');
+		$this->SetTemplateAction('activity');
 	}
 	/**
 	 * Список друзей пользователей
@@ -194,7 +194,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('created_topics');
+		$this->SetTemplateAction('created.topics');
 	}
 	/**
 	 * Вывод комментариев пользователя
@@ -227,7 +227,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('created_comments');
+		$this->SetTemplateAction('created.comments');
 	}
 	/**
 	 * Выводит список избранноего юзера
@@ -269,7 +269,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('favourite_topics');
+		$this->SetTemplateAction('favourite.topics');
 	}
 	/**
 	 * Список топиков из избранного по тегу
@@ -314,7 +314,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('favourite_topics');
+		$this->SetTemplateAction('favourite.topics');
 	}
 	/**
 	 * Выводит список избранноего юзера
@@ -348,7 +348,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('favourite_comments');
+		$this->SetTemplateAction('favourite.comments');
 	}
 	/**
 	 * Показывает инфу профиля
@@ -410,7 +410,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('whois');
+		$this->SetTemplateAction('info');
 	}
 	/**
 	 * Отображение стены пользователя
@@ -454,8 +454,8 @@ class ActionProfile extends Action {
 		$oWall->_setValidateScenario('add');
 		$oWall->setWallUserId($this->oUserProfile->getId());
 		$oWall->setUserId($this->oUserCurrent->getId());
-		$oWall->setText(getRequest('sText'));
-		$oWall->setPid(getRequest('iPid'));
+		$oWall->setText(getRequestStr('sText'));
+		$oWall->setPid(getRequestStr('iPid'));
 
 		$this->Hook_Run('wall_add_validate_before', array('oWall'=>$oWall));
 		if ($oWall->_Validate()) {
@@ -506,7 +506,7 @@ class ActionProfile extends Action {
 		/**
 		 * Получаем запись
 		 */
-		if (!($oWall=$this->Wall_GetWallById(getRequest('iId')))) {
+		if (!($oWall=$this->Wall_GetWallById(getRequestStr('iId')))) {
 			return parent::EventNotFound();
 		}
 		/**
@@ -550,7 +550,7 @@ class ActionProfile extends Action {
 		$aWall=$this->Wall_GetWall($aFilter,array('id'=>'desc'),1,Config::Get('module.wall.per_page'));
 		$this->Viewer_Assign('aWall',$aWall['collection']);
 		$this->Viewer_Assign('oUserCurrent',$this->oUserCurrent); // хак, т.к. к этому моменту текущий юзер не загружен в шаблон
-		$this->Viewer_AssignAjax('sText', $this->Viewer_Fetch('actions/ActionProfile/wall_items.tpl'));
+		$this->Viewer_AssignAjax('sText', $this->Viewer_Fetch('actions/ActionProfile/wall.posts.tpl'));
 		$this->Viewer_AssignAjax('iCountWall',$aWall['count']);
 		$this->Viewer_AssignAjax('iCountWallReturn',count($aWall['collection']));
 	}
@@ -565,7 +565,7 @@ class ActionProfile extends Action {
 		if (!$this->CheckUserProfile()) {
 			return parent::EventNotFound();
 		}
-		if (!($oWall=$this->Wall_GetWallById(getRequest('iPid'))) or $oWall->getPid()) {
+		if (!($oWall=$this->Wall_GetWallById(getRequestStr('iPid'))) or $oWall->getPid()) {
 			return parent::EventNotFound();
 		}
 		/**
@@ -589,7 +589,7 @@ class ActionProfile extends Action {
 		 */
 		$aWall=$this->Wall_GetWall($aFilter,array('id'=>'asc'),1,300);
 		$this->Viewer_Assign('aReplyWall',$aWall['collection']);
-		$this->Viewer_AssignAjax('sText', $this->Viewer_Fetch('actions/ActionProfile/wall_items_reply.tpl'));
+		$this->Viewer_AssignAjax('sText', $this->Viewer_Fetch('actions/ActionProfile/wall.comments.tpl'));
 		$this->Viewer_AssignAjax('iCountWall',$aWall['count']);
 		$this->Viewer_AssignAjax('iCountWallReturn',count($aWall['collection']));
 	}
@@ -611,9 +611,9 @@ class ActionProfile extends Action {
 		 * Создаем заметку и проводим валидацию
 		 */
 		$oNote=Engine::GetEntity('ModuleUser_EntityNote');
-		$oNote->setTargetUserId(getRequest('iUserId'));
+		$oNote->setTargetUserId(getRequestStr('iUserId'));
 		$oNote->setUserId($this->oUserCurrent->getId());
-		$oNote->setText((string)getRequest('text'));
+		$oNote->setText(getRequestStr('text'));
 
 		if ($oNote->_Validate()) {
 			/**
@@ -641,7 +641,7 @@ class ActionProfile extends Action {
 			return parent::EventNotFound();
 		}
 
-		if (!($oUserTarget=$this->User_GetUserById(getRequest('iUserId')))) {
+		if (!($oUserTarget=$this->User_GetUserById(getRequestStr('iUserId')))) {
 			return parent::EventNotFound();
 		}
 		if (!($oNote=$this->User_GetUserNote($oUserTarget->getId(),$this->oUserCurrent->getId()))) {
@@ -686,7 +686,7 @@ class ActionProfile extends Action {
 		/**
 		 * Устанавливаем шаблон вывода
 		 */
-		$this->SetTemplateAction('created_notes');
+		$this->SetTemplateAction('created.notes');
 	}
 	/**
 	 * Добавление пользователя в друзья, по отправленной заявке
@@ -696,7 +696,7 @@ class ActionProfile extends Action {
 		/**
 		 * Из реквеста дешефруем ID польователя
 		 */
-		$sUserId=xxtea_decrypt(base64_decode(rawurldecode((string)getRequest('code'))), Config::Get('module.talk.encrypt'));
+		$sUserId=xxtea_decrypt(base64_decode(rawurldecode(getRequestStr('code'))), Config::Get('module.talk.encrypt'));
 		if (!$sUserId) {
 			return $this->EventNotFound();
 		}
@@ -776,7 +776,7 @@ class ActionProfile extends Action {
 		 * Устанавливаем формат Ajax ответа
 		 */
 		$this->Viewer_SetResponseAjax('json');
-		$sUserId=getRequest('idUser',null,'post');
+		$sUserId=getRequestStr('idUser',null,'post');
 		/**
 		 * Если пользователь не авторизирован, возвращаем ошибку
 		 */
@@ -896,8 +896,8 @@ class ActionProfile extends Action {
 		 * Устанавливаем формат Ajax ответа
 		 */
 		$this->Viewer_SetResponseAjax('json');
-		$sUserId=getRequest('idUser');
-		$sUserText=getRequest('userText','');
+		$sUserId=getRequestStr('idUser');
+		$sUserText=getRequestStr('userText','');
 		/**
 		 * Если пользователь не авторизирован, возвращаем ошибку
 		 */
@@ -1120,7 +1120,7 @@ class ActionProfile extends Action {
 		 * Устанавливаем формат Ajax ответа
 		 */
 		$this->Viewer_SetResponseAjax('json');
-		$sUserId=getRequest('idUser',null,'post');
+		$sUserId=getRequestStr('idUser',null,'post');
 		/**
 		 * Если пользователь не авторизирован, возвращаем ошибку
 		 */
@@ -1202,6 +1202,7 @@ class ActionProfile extends Action {
 	}
 	/**
 	 * Обработка подтверждения старого емайла при его смене
+	 * TODO: Перенести в экшн Settings
 	 */
 	public function EventChangemailConfirmFrom() {
 		if (!($oChangemail=$this->User_GetUserChangemailByCodeFrom($this->GetParamEventMatch(1,0)))) {
@@ -1220,7 +1221,7 @@ class ActionProfile extends Action {
 		 */
 		$oUser=$this->User_GetUserById($oChangemail->getUserId());
 		$this->Notify_Send($oChangemail->getMailTo(),
-						   'notify.user_changemail_to.tpl',
+						   Config::Get('module.notify.prefix').'.user_changemail_to.tpl',
 						   $this->Lang_Get('notify_subject_user_changemail'),
 						   array(
 							   'oUser' => $oUser,
@@ -1228,7 +1229,7 @@ class ActionProfile extends Action {
 						   ));
 
 		$this->Viewer_Assign('sText',$this->Lang_Get('settings_profile_mail_change_to_notice'));
-		$this->SetTemplateAction('changemail_confirm');
+		$this->SetTemplate('actions/ActionSettings/account.change_email_confirm.tpl');
 	}
 	/**
 	 * Обработка подтверждения нового емайла при смене старого
@@ -1250,8 +1251,15 @@ class ActionProfile extends Action {
 		$oUser->setMail($oChangemail->getMailTo());
 		$this->User_Update($oUser);
 
+		/**
+		 * Меняем емайл в подписках
+		 */
+		if ($oChangemail->getMailFrom()) {
+			$this->Subscribe_ChangeSubscribeMail($oChangemail->getMailFrom(),$oChangemail->getMailTo(),$oUser->getId());
+		}
+
 		$this->Viewer_Assign('sText',$this->Lang_Get('settings_profile_mail_change_ok',array('mail'=>htmlspecialchars($oChangemail->getMailTo()))));
-		$this->SetTemplateAction('changemail_confirm');
+		$this->SetTemplate('actions/ActionSettings/account.change_email_confirm.tpl');
 	}
 	/**
 	 * Выполняется при завершении работы экшена

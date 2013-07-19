@@ -73,7 +73,6 @@ abstract class ModuleORM extends Module {
 			// есть автоинкремент, устанавливаем его
 			$oEntity->_setData(array($oEntity->_getPrimaryKey() => $res));
 			// Обновление связей many_to_many
-			$aRelationsData = $oEntity->_getRelationsData();
 			foreach ($oEntity->_getRelations() as $sRelName => $aRelation) {
 				if ($aRelation[0] == EntityORM::RELATION_TYPE_MANY_TO_MANY && $oEntity->$sRelName->isUpdated()) {
 					// Сброс кэша по связям
@@ -96,7 +95,6 @@ abstract class ModuleORM extends Module {
 		$res=$this->oMapperORM->UpdateEntity($oEntity);
 		if ($res===0 or $res) { // запись не изменилась, либо изменилась
 			// Обновление связей many_to_many
-			$aRelationsData = $oEntity->_getRelationsData();
 			foreach ($oEntity->_getRelations() as $sRelName => $aRelation) {
 				if ($aRelation[0] == EntityORM::RELATION_TYPE_MANY_TO_MANY && $oEntity->$sRelName->isUpdated()) {
 					// Сброс кэша по связям
@@ -391,6 +389,13 @@ abstract class ModuleORM extends Module {
 			if (!is_array($aFilter['#with'])) {
 				$aFilter['#with']=array($aFilter['#with']);
 			}
+			/**
+			 * Формируем список примари ключей
+			 */
+			$aEntityPrimaryKeys=array();
+			foreach ($aEntities as $oEntity) {
+				$aEntityPrimaryKeys[]=$oEntity->_getPrimaryKeyValue();
+			}
 			$oEntityEmpty=Engine::GetEntity($sEntityFull);
 			$aRelations=$oEntityEmpty->_getRelations();
 			$aEntityKeys=array();
@@ -419,14 +424,25 @@ abstract class ModuleORM extends Module {
 				$sRelEntityName=Engine::GetEntityName($sRelEntity);
 				$sRelPluginPrefix=Engine::GetPluginPrefix($sRelEntity);
 				$sRelPrimaryKey = method_exists($oRelEntityEmpty,'_getPrimaryKey') ? func_camelize($oRelEntityEmpty->_getPrimaryKey()) : 'Id';
-				$aRelData=Engine::GetInstance()->_CallModule("{$sRelPluginPrefix}{$sRelModuleName}_get{$sRelEntityName}ItemsByArray{$sRelPrimaryKey}", array($aEntityKeys[$sRelKey]));
-
+				if ($sRelType==EntityORM::RELATION_TYPE_BELONGS_TO) {
+					$aRelData=Engine::GetInstance()->_CallModule("{$sRelPluginPrefix}{$sRelModuleName}_get{$sRelEntityName}ItemsByArray{$sRelPrimaryKey}", array($aEntityKeys[$sRelKey]));
+				} elseif ($sRelType==EntityORM::RELATION_TYPE_HAS_ONE) {
+					$aFilterRel=array($sRelKey.' in'=>$aEntityPrimaryKeys,'#index-from'=>$sRelKey);
+					$aRelData=Engine::GetInstance()->_CallModule("{$sRelPluginPrefix}{$sRelModuleName}_get{$sRelEntityName}ItemsByFilter", array($aFilterRel));
+				}
 				/**
 				 * Собираем набор
 				 */
 				foreach ($aEntities as $oEntity) {
-					if (isset($aRelData[$oEntity->_getDataOne($sRelKey)])) {
-						$oEntity->_setData(array($sRelationName => $aRelData[$oEntity->_getDataOne($sRelKey)]));
+					if ($sRelType==EntityORM::RELATION_TYPE_BELONGS_TO) {
+						$sKeyData=$oEntity->_getDataOne($sRelKey);
+					} elseif ($sRelType==EntityORM::RELATION_TYPE_HAS_ONE) {
+						$sKeyData=$oEntity->_getPrimaryKeyValue();
+					} else {
+						break;
+					}
+					if (isset($aRelData[$sKeyData])) {
+						$oEntity->_setData(array($sRelationName => $aRelData[$sKeyData]));
 					}
 				}
 			}
@@ -611,51 +627,51 @@ abstract class ModuleORM extends Module {
 	 * @return mixed
 	 */
 	public function __call($sName,$aArgs) {
-		if (preg_match("@^add([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^add([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_AddEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^update([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^update([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_UpdateEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^save([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^save([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_SaveEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^delete([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^delete([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_DeleteEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^reload([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^reload([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_ReloadEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^showcolumnsfrom([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^showcolumnsfrom([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_ShowColumnsFrom($aArgs[0]);
 		}
 
-		if (preg_match("@^showprimaryindexfrom([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^showprimaryindexfrom([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_ShowPrimaryIndexFrom($aArgs[0]);
 		}
 
-		if (preg_match("@^getchildrenof([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^getchildrenof([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_GetChildrenOfEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^getparentof([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^getparentof([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_GetParentOfEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^getdescendantsof([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^getdescendantsof([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_GetDescendantsOfEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^getancestorsof([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^getancestorsof([a-z]+)$@i",$sName,$aMatch)) {
 			return $this->_GetAncestorsOfEntity($aArgs[0]);
 		}
 
-		if (preg_match("@^loadtreeof([\w]+)$@i",$sName,$aMatch)) {
+		if (preg_match("@^loadtreeof([a-z]+)$@i",$sName,$aMatch)) {
 			$sEntityFull = array_key_exists(1,$aMatch) ? $aMatch[1] : null;
 			return $this->LoadTree($aArgs[0], $sEntityFull);
 		}

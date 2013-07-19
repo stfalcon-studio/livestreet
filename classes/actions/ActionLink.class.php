@@ -46,6 +46,12 @@ class ActionLink extends Action {
 	 * @var ModuleUser_EntityUser|null
 	 */
 	protected $oUserCurrent=null;
+	/**
+	 * Тип топика
+	 *
+	 * @var string
+	 */
+	protected $sType = 'link';
 
 	/**
 	 * Инициализация
@@ -96,7 +102,7 @@ class ActionLink extends Action {
 		/**
 		 * проверяем является ли топик ссылкой
 		 */
-		if ($oTopic->getType()!='link') {
+		if ($oTopic->getType()!=$this->sType) {
 			return parent::EventNotFound();
 		}
 		/**
@@ -131,7 +137,7 @@ class ActionLink extends Action {
 		/**
 		 * Проверяем тип топика
 		 */
-		if ($oTopic->getType()!='link') {
+		if ($oTopic->getType()!=$this->sType) {
 			return parent::EventNotFound();
 		}
 		/**
@@ -148,6 +154,7 @@ class ActionLink extends Action {
 		 * Загружаем переменные в шаблон
 		 */
 		$this->Viewer_Assign('aBlogsAllow',$this->Blog_GetBlogsAllowByUser($this->oUserCurrent));
+		$this->Viewer_Assign('sTopicType', $this->sType);
 		$this->Viewer_AddHtmlTitle($this->Lang_Get('topic_link_title_edit'));
 		/**
 		 * Устанавливаем шаблон вывода
@@ -175,6 +182,8 @@ class ActionLink extends Action {
 			$_REQUEST['topic_publish_index']=$oTopic->getPublishIndex();
 			$_REQUEST['topic_forbid_comment']=$oTopic->getForbidComment();
 		}
+		
+		$this->Viewer_Assign('oTopicEdit', $oTopic);
 	}
 	/**
 	 * Добавление топика-ссылки
@@ -196,6 +205,7 @@ class ActionLink extends Action {
 		 * Загружаем переменные в шаблон
 		 */
 		$this->Viewer_Assign('aBlogsAllow',$this->Blog_GetBlogsAllowByUser($this->oUserCurrent));
+		$this->Viewer_Assign('sTopicType', $this->sType);
 		$this->Viewer_AddHtmlTitle($this->Lang_Get('topic_link_title_create'));
 		/**
 		 * Обрабатываем отправку формы
@@ -215,17 +225,17 @@ class ActionLink extends Action {
 			return false;
 		}
 		$oTopic=Engine::GetEntity('Topic');
-		$oTopic->_setValidateScenario('link');
+		$oTopic->_setValidateScenario($this->sType);
 		/**
 		 * Заполняем поля для валидации
 		 */
-		$oTopic->setBlogId(getRequest('blog_id'));
-		$oTopic->setTitle(strip_tags(getRequest('topic_title')));
-		$oTopic->setTextSource(getRequest('topic_text'));
-		$oTopic->setTags(getRequest('topic_tags'));
+		$oTopic->setBlogId(getRequestStr('blog_id'));
+		$oTopic->setTitle(strip_tags(getRequestStr('topic_title')));
+		$oTopic->setTextSource(getRequestStr('topic_text'));
+		$oTopic->setTags(getRequestStr('topic_tags'));
 		$oTopic->setUserId($this->oUserCurrent->getId());
-		$oTopic->setType('link');
-		$oTopic->setLinkUrl(getRequest('topic_link_url'));
+		$oTopic->setType($this->sType);
+		$oTopic->setLinkUrl(getRequestStr('topic_link_url'));
 		$oTopic->setDateAdd(date("Y-m-d H:i:s"));
 		$oTopic->setUserIp(func_getIp());
 		/**
@@ -317,7 +327,7 @@ class ActionLink extends Action {
 			/**
 			 * Добавляем автора топика в подписчики на новые комментарии к этому топику
 			 */
-			$this->Subscribe_AddSubscribeSimple('topic_new_comment',$oTopic->getId(),$this->oUserCurrent->getMail());
+			$this->Subscribe_AddSubscribeSimple('topic_new_comment',$oTopic->getId(),$this->oUserCurrent->getMail(),$this->oUserCurrent->getId());
 			//Делаем рассылку спама всем, кто состоит в этом блоге
 			if ($oTopic->getPublish()==1 and $oBlog->getType()!='personal') {
 				$this->Topic_SendNotifyTopicNew($oBlog,$oTopic,$this->oUserCurrent);
@@ -347,11 +357,11 @@ class ActionLink extends Action {
 		/**
 		 * Заполняем поля для валидации
 		 */
-		$oTopic->setBlogId(getRequest('blog_id'));
-		$oTopic->setTitle(strip_tags(getRequest('topic_title')));
-		$oTopic->setLinkUrl(getRequest('topic_link_url'));
-		$oTopic->setTextSource(getRequest('topic_text'));
-		$oTopic->setTags(getRequest('topic_tags'));
+		$oTopic->setBlogId(getRequestStr('blog_id'));
+		$oTopic->setTitle(strip_tags(getRequestStr('topic_title')));
+		$oTopic->setLinkUrl(getRequestStr('topic_link_url'));
+		$oTopic->setTextSource(getRequestStr('topic_text'));
+		$oTopic->setTags(getRequestStr('topic_tags'));
 		$oTopic->setUserIp(func_getIp());
 		/**
 		 * Проверка корректности полей формы

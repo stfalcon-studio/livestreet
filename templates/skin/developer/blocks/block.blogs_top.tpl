@@ -1,5 +1,12 @@
+{**
+ * Блок со списоком блогов
+ * Список блогов
+ *
+ * @styles css/blocks.css
+ *}
+
 <ul class="item-list">
-	{foreach from=$aBlogs item=oBlog}
+	{foreach $aBlogs as $oBlog}
 		<li>
 			<a href="{$oBlog->getUrlFull()}"><img src="{$oBlog->getAvatarPath(48)}" alt="avatar" class="avatar" /></a>
 			

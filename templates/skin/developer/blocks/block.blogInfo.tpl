@@ -1,20 +1,19 @@
-<section class="block">
-	<header class="block-header">
-		<h3>{$aLang.block_blog_info}</h3>
-	</header>
-	
-	<div class="block-content">
-		<p id="block_blog_info" class="text"></p>
-	</div>	
-</section>
+{**
+ * Информация о блоге показываемая при создании топика
+ *
+ * @styles css/blocks.css
+ *}
 
+{extends file='blocks/block.aside.base.tpl'}
 
-<section class="block">
-	<header class="block-header">
-		<h3>{$aLang.block_blog_info_note}</h3>
-	</header>
+{block name='block_title'}{$aLang.block_blog_info}{/block}
+{block name='block_content'}
+	{* Загрузка описания блога *}
+	<script>
+		jQuery(document).ready(function($){
+			ls.blog.loadInfo($('#blog_id').val());
+		});
+	</script>
 	
-	<div class="block-content">	
-		<p>{$aLang.block_blog_info_note_text}</p>
-	</div>	
-</section>
+	<p id="block_blog_info" class="text"></p>
+{/block}

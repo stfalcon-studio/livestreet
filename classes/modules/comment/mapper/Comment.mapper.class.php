@@ -611,10 +611,8 @@ class ModuleComment_MapperComment extends Mapper {
 	 */
 	public function DeleteCommentOnlineByTargetId($sTargetId,$sTargetType) {
 		$sql = "DELETE FROM ".Config::Get('db.table.comment_online')." WHERE target_id = ?d and target_type = ? ";
-		if ($this->oDb->query($sql,$sTargetId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sTargetId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Обновляет коммент
@@ -635,10 +633,8 @@ class ModuleComment_MapperComment extends Mapper {
 			WHERE
 				comment_id = ?d
 		";
-		if ($this->oDb->query($sql,$oComment->getText(),$oComment->getRating(),$oComment->getCountVote(),$oComment->getCountFavourite(),$oComment->getDelete(),$oComment->getPublish(),$oComment->getTextHash(),$oComment->getId())) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$oComment->getText(),$oComment->getRating(),$oComment->getCountVote(),$oComment->getCountFavourite(),$oComment->getDelete(),$oComment->getPublish(),$oComment->getTextHash(),$oComment->getId());
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Устанавливает publish у коммента
@@ -655,10 +651,8 @@ class ModuleComment_MapperComment extends Mapper {
 			WHERE
 				target_id = ?d AND target_type = ? 
 		";
-		if ($this->oDb->query($sql,$iPublish,$sTargetId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$iPublish,$sTargetId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Удаляет комментарии из базы данных
@@ -674,11 +668,10 @@ class ModuleComment_MapperComment extends Mapper {
 				target_id IN (?a)
 				AND
 				target_type = ?
+				ORDER BY comment_id DESC
 		";
-		if ($this->oDb->query($sql,$aTargetId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$aTargetId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Удаляет коммент из прямого эфира по массиву переданных идентификаторов
@@ -695,10 +688,8 @@ class ModuleComment_MapperComment extends Mapper {
 				AND 
 				target_type = ? 
 		";
-		if ($this->oDb->query($sql,$aCommentId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$aCommentId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Меняем target parent по массиву идентификаторов
@@ -718,10 +709,8 @@ class ModuleComment_MapperComment extends Mapper {
 				AND 
 				target_type = ? 
 		";
-		if ($this->oDb->query($sql,$sParentId,$aTargetId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sParentId,$aTargetId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Меняем target parent по массиву идентификаторов в таблице комментариев online
@@ -741,10 +730,8 @@ class ModuleComment_MapperComment extends Mapper {
 				AND 
 				target_type = ? 
 		";
-		if ($this->oDb->query($sql,$sParentId,$aTargetId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sParentId,$aTargetId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Меняет target parent на новый
@@ -764,10 +751,8 @@ class ModuleComment_MapperComment extends Mapper {
 				AND 
 				target_type = ? 
 		";
-		if ($this->oDb->query($sql,$sParentIdNew,$sParentId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sParentIdNew,$sParentId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Меняет target parent на новый в прямом эфире
@@ -787,10 +772,8 @@ class ModuleComment_MapperComment extends Mapper {
 				AND 
 				target_type = ? 
 		";
-		if ($this->oDb->query($sql,$sParentIdNew,$sParentId,$sTargetType)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$sParentIdNew,$sParentId,$sTargetType);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Перестраивает дерево комментариев
@@ -875,10 +858,8 @@ class ModuleComment_MapperComment extends Mapper {
 					f.target_type = 'comment'
             )
 		";
-		if ($this->oDb->query($sql)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql);
+		return $res===false or is_null($res) ? false : true;
 	}
 
 	/**

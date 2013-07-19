@@ -39,6 +39,14 @@ class ModuleBlog_EntityBlog extends Entity {
 		return $this->_getDataOne('user_owner_id');
 	}
 	/**
+	 * Возвращает ID категории
+	 *
+	 * @return int|null
+	 */
+	public function getCategoryId() {
+		return $this->_getDataOne('category_id');
+	}
+	/**
 	 * Возвращает название блога
 	 *
 	 * @return string|null
@@ -170,7 +178,7 @@ class ModuleBlog_EntityBlog extends Entity {
 		if ($sPath=$this->getAvatar()) {
 			return preg_replace("#_\d{1,3}x\d{1,3}(\.\w{3,4})$#", ((($iSize==0)?"":"_{$iSize}x{$iSize}") . "\\1"),$sPath);
 		} else {
-			return Config::Get('path.static.skin').'/images/avatar_blog_'.$iSize.'x'.$iSize.'.png';
+			return Config::Get('path.static.assets').'/images/avatars/avatar_blog_'.$iSize.'x'.$iSize.'.png';
 		}
 	}
 	/**
@@ -225,6 +233,14 @@ class ModuleBlog_EntityBlog extends Entity {
 	 */
 	public function setOwnerId($data) {
 		$this->_aData['user_owner_id']=$data;
+	}
+	/**
+	 * Устанавливает ID категории блога
+	 *
+	 * @param int $data
+	 */
+	public function setCategoryId($data) {
+		$this->_aData['category_id']=$data;
 	}
 	/**
 	 * Устанавливает заголовок блога

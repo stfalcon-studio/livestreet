@@ -1,7 +1,11 @@
+{**
+ * Список пользователей (аватары)
+ *}
+
 {if $aUsersList}
 	<ul class="user-list-avatar">
-		{foreach from=$aUsersList item=oUserList}
-			{assign var="oSession" value=$oUserList->getSession()}
+		{foreach $aUsersList as $oUserList}
+			{$oSession = $oUserList->getSession()}
 			
 			<li>
 				<a href="{$oUserList->getUserWebPath()}" title="{$oUserList->getLogin()}"><img src="{$oUserList->getProfileAvatarPath(48)}" alt="avatar" class="avatar" /></a>
@@ -16,5 +20,4 @@
 	{/if}
 {/if}
 
-
-{include file='paging.tpl' aPaging=$aPaging}
+{include file='pagination.tpl' aPaging=$aPaging}
