@@ -384,6 +384,14 @@ abstract class EntityORM extends Entity {
 		return $this->_aOriginalData;
 	}
 	/**
+	 * Возвращает данные для списка полей сущности
+	 *
+	 * @return array
+	 */
+	public function _getDataFields() {
+		return $this->_getData($this->_getFields());
+	}
+	/**
 	 * Возвращает список полей сущности
 	 *
 	 * @return array
@@ -530,8 +538,13 @@ abstract class EntityORM extends Entity {
 							$mCmdArgs=$iPrimaryKeyValue;
 							break;
 						case self::RELATION_TYPE_HAS_MANY :
+							if (isset($this->aRelations[$sKey][3])) {
+								$aFilterAdd=$this->aRelations[$sKey][3];
+							} else {
+								$aFilterAdd=array();
+							}
 							$sCmd="{$sRelPluginPrefix}{$sRelModuleName}_get{$sRelEntityName}ItemsByFilter";
-							$mCmdArgs=array($sRelationKey => $iPrimaryKeyValue);
+							$mCmdArgs=array_merge(array($sRelationKey => $iPrimaryKeyValue),$aFilterAdd);
 							break;
 						case self::RELATION_TYPE_MANY_TO_MANY :
 							$sCmd="{$sRelPluginPrefix}Module{$sRelModuleName}_get{$sRelEntityName}ItemsByJoinTable";

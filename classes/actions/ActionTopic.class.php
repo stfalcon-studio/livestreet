@@ -46,6 +46,12 @@ class ActionTopic extends Action {
 	 * @var ModuleUser_EntityUser|null
 	 */
 	protected $oUserCurrent=null;
+	/**
+	 * Тип топика
+	 *
+	 * @var string
+	 */
+	protected $sType = 'topic';
 
 	/**
 	 * Инициализация
@@ -75,7 +81,7 @@ class ActionTopic extends Action {
 	protected function RegisterEvent() {
 		$this->AddEvent('add','EventAdd');
 		$this->AddEventPreg('/^published$/i','/^(page([1-9]\d{0,5}))?$/i','EventShowTopics');
-		$this->AddEventPreg('/^saved$/i','/^(page([1-9]\d{0,5}))?$/i','EventShowTopics');
+		$this->AddEventPreg('/^drafts$/i','/^(page([1-9]\d{0,5}))?$/i','EventShowTopics');
 		$this->AddEvent('edit','EventEdit');
 		$this->AddEvent('delete','EventDelete');
 	}
@@ -118,6 +124,7 @@ class ActionTopic extends Action {
 		 * Загружаем переменные в шаблон
 		 */
 		$this->Viewer_Assign('aBlogsAllow',$this->Blog_GetBlogsAllowByUser($this->oUserCurrent));
+		$this->Viewer_Assign('sTopicType', $this->sType);
 		$this->Viewer_AddHtmlTitle($this->Lang_Get('topic_topic_edit'));
 		/**
 		 * Устанавливаем шаблон вывода
@@ -144,6 +151,8 @@ class ActionTopic extends Action {
 			$_REQUEST['topic_publish_index']=$oTopic->getPublishIndex();
 			$_REQUEST['topic_forbid_comment']=$oTopic->getForbidComment();
 		}
+
+		$this->Viewer_Assign('oTopicEdit', $oTopic);
 	}
 	/**
 	 * Удаление топика
@@ -188,6 +197,7 @@ class ActionTopic extends Action {
 		 * Загружаем переменные в шаблон
 		 */
 		$this->Viewer_Assign('aBlogsAllow',$this->Blog_GetBlogsAllowByUser($this->oUserCurrent));
+		$this->Viewer_Assign('sTopicType', $this->sType);
 		$this->Viewer_AddHtmlTitle($this->Lang_Get('topic_topic_create'));
 		/**
 		 * Обрабатываем отправку формы
@@ -239,10 +249,10 @@ class ActionTopic extends Action {
 		/**
 		 * Заполняем поля для валидации
 		 */
-		$oTopic->setBlogId(getRequest('blog_id'));
-		$oTopic->setTitle(strip_tags(getRequest('topic_title')));
-		$oTopic->setTextSource(getRequest('topic_text'));
-		$oTopic->setTags(getRequest('topic_tags'));
+		$oTopic->setBlogId(getRequestStr('blog_id'));
+		$oTopic->setTitle(strip_tags(getRequestStr('topic_title')));
+		$oTopic->setTextSource(getRequestStr('topic_text'));
+		$oTopic->setTags(getRequestStr('topic_tags'));
 		$oTopic->setUserId($this->oUserCurrent->getId());
 		$oTopic->setType('topic');
 		$oTopic->setDateAdd(date("Y-m-d H:i:s"));
@@ -341,7 +351,7 @@ class ActionTopic extends Action {
 			/**
 			 * Добавляем автора топика в подписчики на новые комментарии к этому топику
 			 */
-			$this->Subscribe_AddSubscribeSimple('topic_new_comment',$oTopic->getId(),$this->oUserCurrent->getMail());
+			$this->Subscribe_AddSubscribeSimple('topic_new_comment',$oTopic->getId(),$this->oUserCurrent->getMail(),$this->oUserCurrent->getId());
 			/**
 			 * Делаем рассылку спама всем, кто состоит в этом блоге
 			 */
@@ -373,10 +383,10 @@ class ActionTopic extends Action {
 		/**
 		 * Заполняем поля для валидации
 		 */
-		$oTopic->setBlogId(getRequest('blog_id'));
-		$oTopic->setTitle(strip_tags(getRequest('topic_title')));
-		$oTopic->setTextSource(getRequest('topic_text'));
-		$oTopic->setTags(getRequest('topic_tags'));
+		$oTopic->setBlogId(getRequestStr('blog_id'));
+		$oTopic->setTitle(strip_tags(getRequestStr('topic_title')));
+		$oTopic->setTextSource(getRequestStr('topic_text'));
+		$oTopic->setTags(getRequestStr('topic_tags'));
 		$oTopic->setUserIp(func_getIp());
 		/**
 		 * Проверка корректности полей формы

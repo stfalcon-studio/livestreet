@@ -34,14 +34,15 @@ class ModuleBlog_MapperBlog extends Mapper {
 			blog_title,
 			blog_description,
 			blog_type,			
+			category_id,
 			blog_date_add,
 			blog_limit_rating_topic,
 			blog_url,
 			blog_avatar
 			)
-			VALUES(?d,  ?,	?,	?,	?,	?, ?, ?)
+			VALUES(?d,  ?,	?,	?, ?,  ?,	?, ?, ?)
 		";
-		if ($iId=$this->oDb->query($sql,$oBlog->getOwnerId(),$oBlog->getTitle(),$oBlog->getDescription(),$oBlog->getType(),$oBlog->getDateAdd(),$oBlog->getLimitRatingTopic(),$oBlog->getUrl(),$oBlog->getAvatar())) {
+		if ($iId=$this->oDb->query($sql,$oBlog->getOwnerId(),$oBlog->getTitle(),$oBlog->getDescription(),$oBlog->getType(),$oBlog->getCategoryId(),$oBlog->getDateAdd(),$oBlog->getLimitRatingTopic(),$oBlog->getUrl(),$oBlog->getAvatar())) {
 			return $iId;
 		}
 		return false;
@@ -58,6 +59,7 @@ class ModuleBlog_MapperBlog extends Mapper {
 				blog_title= ?,
 				blog_description= ?,
 				blog_type= ?,
+				category_id= ?,
 				blog_date_edit= ?,
 				blog_rating= ?f,
 				blog_count_vote = ?d,
@@ -69,10 +71,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 			WHERE
 				blog_id = ?d
 		";
-		if ($this->oDb->query($sql,$oBlog->getTitle(),$oBlog->getDescription(),$oBlog->getType(),$oBlog->getDateEdit(),$oBlog->getRating(),$oBlog->getCountVote(),$oBlog->getCountUser(),$oBlog->getCountTopic(),$oBlog->getLimitRatingTopic(),$oBlog->getUrl(),$oBlog->getAvatar(),$oBlog->getId())) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$oBlog->getTitle(),$oBlog->getDescription(),$oBlog->getType(),$oBlog->getCategoryId(),$oBlog->getDateEdit(),$oBlog->getRating(),$oBlog->getCountVote(),$oBlog->getCountUser(),$oBlog->getCountTopic(),$oBlog->getLimitRatingTopic(),$oBlog->getUrl(),$oBlog->getAvatar(),$oBlog->getId());
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Получает список блогов по ID
@@ -116,6 +116,234 @@ class ModuleBlog_MapperBlog extends Mapper {
 		}
 		return $aBlogs;
 	}
+
+	/**
+	 * Получает список категорий блогов
+	 *
+	 * @param int|null|bool $iPid ID родительской категории, если false, то не учитывается в выборке
+	 * @return array
+	 */
+	public function GetCategoriesByPid($iPid) {
+		$sql = "SELECT
+					*
+				FROM
+					".Config::Get('db.table.blog_category')."
+				WHERE
+					1 = 1
+					{ AND pid = ?d }
+					{ AND pid IS NULL and 1=?d }
+				ORDER by title asc
+				";
+		$aReturn=array();
+		if ($aRows=$this->oDb->select($sql,$iPid ? $iPid : DBSIMPLE_SKIP,is_null($iPid) ? 1 : DBSIMPLE_SKIP)) {
+			foreach ($aRows as $aRow) {
+				$aReturn[]=Engine::GetEntity('ModuleBlog_EntityBlogCategory',$aRow);
+			}
+		}
+		return $aReturn;
+	}
+
+	/**
+	 * Возвращает список категорий с учетом вложенности
+	 *
+	 * @return array|null
+	 */
+	public function GetCategoriesTree() {
+		$sql = "SELECT
+					*,
+					id as ARRAY_KEY,
+					pid as PARENT_KEY
+				FROM
+					".Config::Get('db.table.blog_category')."
+				ORDER by sort desc;
+					";
+		if ($aRows=$this->oDb->select($sql)) {
+			return $aRows;
+		}
+		return null;
+	}
+	/**
+	 * Получает категорию по полному урлу
+	 *
+	 * @param string $sUrl УРЛ
+	 * @return ModuleBlog_EntityBlogCategory|null
+	 */
+	public function GetCategoryByUrlFull($sUrl) {
+		$sql = "SELECT * FROM ".Config::Get('db.table.blog_category')." WHERE url_full = ? ";
+		if ($aRow=$this->oDb->selectRow($sql,$sUrl)) {
+			return Engine::GetEntity('ModuleBlog_EntityBlogCategory',$aRow);
+		}
+		return null;
+	}
+	/**
+	 * Получает категорию по ID
+	 *
+	 * @param int $iId УРЛ
+	 * @return ModuleBlog_EntityBlogCategory|null
+	 */
+	public function GetCategoryById($iId) {
+		$sql = "SELECT * FROM ".Config::Get('db.table.blog_category')." WHERE id = ?d ";
+		if ($aRow=$this->oDb->selectRow($sql,$iId)) {
+			return Engine::GetEntity('ModuleBlog_EntityBlogCategory',$aRow);
+		}
+		return null;
+	}
+
+	/**
+	 * Получает следующую категорию по сортировке
+	 *
+	 * @param $iSort
+	 * @param $sPid
+	 * @param $sWay
+	 *
+	 * @return ModuleBlog_EntityBlogCategory|null
+	 */
+	public function GetNextCategoryBySort($iSort,$sPid,$sWay) {
+		if ($sWay=='up') {
+			$sWay='>';
+			$sOrder='asc';
+		} else {
+			$sWay='<';
+			$sOrder='desc';
+		}
+		$sPidNULL='';
+		if (is_null($sPid)) {
+			$sPidNULL='pid IS NULL and';
+		}
+		$sql = "SELECT * FROM ".Config::Get('db.table.blog_category')." WHERE { pid = ? and } {$sPidNULL} sort {$sWay} ? order by sort {$sOrder} limit 0,1";
+		if ($aRow=$this->oDb->selectRow($sql,is_null($sPid) ? DBSIMPLE_SKIP : $sPid, $iSort)) {
+			return Engine::GetEntity('ModuleBlog_EntityBlogCategory',$aRow);
+		}
+		return null;
+	}
+
+	/**
+	 * Возвращает максимальное значение сортировки для родительской категории
+	 *
+	 * @param int|null $sPid
+	 *
+	 * @return int
+	 */
+	public function GetCategoryMaxSortByPid($sPid) {
+		$sql = "SELECT max(sort) as max_sort FROM ".Config::Get('db.table.blog_category')." WHERE 1=1 { and pid = ? } { and pid IS NULL and 1=?d } ";
+		if ($aRow=$this->oDb->selectRow($sql,is_null($sPid) ? DBSIMPLE_SKIP : $sPid,!is_null($sPid) ? DBSIMPLE_SKIP : 1)) {
+			return $aRow['max_sort'];
+		}
+		return 0;
+	}
+	/**
+	 * Обновление категории
+	 *
+	 * @param ModuleBlog_EntityBlogCategory $oObject Объект категории
+	 *
+	 * @return bool
+	 */
+	public function UpdateCategory($oObject) {
+		$sql = "UPDATE ".Config::Get('db.table.blog_category')." SET ?a WHERE id = ?d ";
+		$res=$this->oDb->query($sql,$oObject->_getData(array('pid','title','url','url_full','sort','count_blogs')),$oObject->getId());
+		return $res===false or is_null($res) ? false : true;
+	}
+
+	/**
+	 * Добавление категории
+	 *
+	 * @param ModuleBlog_EntityBlogCategory $oObject
+	 *
+	 * @return int|bool
+	 */
+	public function AddCategory($oObject) {
+		$sql = "INSERT INTO ".Config::Get('db.table.blog_category')." SET ?a ";
+		if ($iId=$this->oDb->query($sql,$oObject->_getData())) {
+			return $iId;
+		}
+		return false;
+	}
+
+	/**
+	 * Возвращает количество категорий
+	 *
+	 * @return int
+	 */
+	public function GetCountCategories() {
+		$sql = "SELECT count(*) as count FROM ".Config::Get('db.table.blog_category')." ";
+		if ($aRow=$this->oDb->selectRow($sql)) {
+			return $aRow['count'];
+		}
+		return 0;
+	}
+	/**
+	 * Увеличивает количество блогов у категории
+	 *
+	 * @param int $sId	ID категории
+	 * @return bool
+	 */
+	public function IncreaseCategoryCountBlogs($sId) {
+		$sql = "UPDATE ".Config::Get('db.table.blog_category')."
+			SET
+				count_blogs=count_blogs+1
+			WHERE
+				id = ?
+		";
+		$res=$this->oDb->query($sql,$sId);
+		return $res===false or is_null($res) ? false : true;
+	}
+	/**
+	 * Уменьшает количество блогов у категории
+	 *
+	 * @param int $sId	ID категории
+	 * @return bool
+	 */
+	public function DecreaseCategoryCountBlogs($sId) {
+		$sql = "UPDATE ".Config::Get('db.table.blog_category')."
+			SET
+				count_blogs=count_blogs-1
+			WHERE
+				id = ?
+		";
+		$res=$this->oDb->query($sql,$sId);
+		return $res===false or is_null($res) ? false : true;
+	}
+	/**
+	 * Удаляет категории по списку их ID
+	 *
+	 * @param array $aArrayId Список ID категорий
+	 *
+	 * @return bool
+	 */
+	public function DeleteCategoryByArrayId($aArrayId) {
+		if (!is_array($aArrayId)) {
+			$aArrayId=array($aArrayId);
+		}
+		$sql = "DELETE FROM ".Config::Get('db.table.blog_category')."
+			WHERE
+				id IN (?a)
+		";
+		$res=$this->oDb->query($sql,$aArrayId);
+		return $res===false or is_null($res) ? false : true;
+	}
+	/**
+	 * Заменяет категорию на новую у блогов
+	 *
+	 * @param int|array|null $iIdOld Старая категори
+	 * @param int|null $iIdNew Новая категория
+	 *
+	 * @return bool
+	 */
+	public function ReplaceBlogsCategoryByCategoryId($iIdOld,$iIdNew) {
+		if (!is_null($iIdOld) and !is_array($iIdOld)) {
+			$iIdOld=array($iIdOld);
+		}
+		$sql = "UPDATE ".Config::Get('db.table.blog')."
+			SET
+				category_id = ?
+			WHERE
+				1 = 1
+				{ and category_id IN ( ?a ) }
+				{ and category_id IS NULL and 1 = ?d }
+		";
+		$res=$this->oDb->query($sql,$iIdNew,is_null($iIdOld) ? DBSIMPLE_SKIP : $iIdOld,!is_null($iIdOld) ? DBSIMPLE_SKIP : 1);
+		return $res===false or is_null($res) ? false : true;
+	}
 	/**
 	 * Добавляет свзяь пользователя с блогом в БД
 	 *
@@ -148,10 +376,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 				AND
 				user_id = ?d
 		";
-		if ($this->oDb->query($sql,$oBlogUser->getBlogId(),$oBlogUser->getUserId())) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$oBlogUser->getBlogId(),$oBlogUser->getUserId());
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Обновляет отношение пользователя с блогом
@@ -168,10 +394,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 				AND
 				user_id = ?d
 		";
-		if ($this->oDb->query($sql,$oBlogUser->getUserRole(),$oBlogUser->getBlogId(),$oBlogUser->getUserId())) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$oBlogUser->getUserRole(),$oBlogUser->getBlogId(),$oBlogUser->getUserId());
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Получает список отношений пользователей с блогами
@@ -451,10 +675,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 			DELETE FROM ".Config::Get('db.table.blog')." 
 			WHERE blog_id = ?d				
 		";
-		if ($this->oDb->query($sql,$iBlogId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$iBlogId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Удалить пользователей блога по идентификатору блога
@@ -467,10 +689,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 			DELETE FROM ".Config::Get('db.table.blog_user')." 
 			WHERE blog_id = ?d
 		";
-		if ($this->oDb->query($sql,$iBlogId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,$iBlogId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Пересчитывает число топиков в блогах
@@ -492,10 +712,8 @@ class ModuleBlog_MapperBlog extends Mapper {
                 WHERE 1=1
                 	{ and b.blog_id = ?d }
             ";
-		if ($this->oDb->query($sql,is_null($iBlogId) ? DBSIMPLE_SKIP : $iBlogId)) {
-			return true;
-		}
-		return false;
+		$res=$this->oDb->query($sql,is_null($iBlogId) ? DBSIMPLE_SKIP : $iBlogId);
+		return $res===false or is_null($res) ? false : true;
 	}
 	/**
 	 * Получает список блогов по фильтру
@@ -528,6 +746,9 @@ class ModuleBlog_MapperBlog extends Mapper {
 		if (isset($aFilter['type']) and !is_array($aFilter['type'])) {
 			$aFilter['type']=array($aFilter['type']);
 		}
+		if (isset($aFilter['category_id']) and !is_array($aFilter['category_id'])) {
+			$aFilter['category_id']=array($aFilter['category_id']);
+		}
 
 		$sql = "SELECT
 					blog_id
@@ -541,6 +762,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 					{ AND blog_type not IN (?a) }
 					{ AND blog_url = ? }
 					{ AND blog_title LIKE ? }
+					{ AND category_id IN (?a) }
+					{ AND category_id IS NULL and 1=?d}
 				ORDER by {$sOrder}
 				LIMIT ?d, ?d ;
 					";
@@ -552,6 +775,8 @@ class ModuleBlog_MapperBlog extends Mapper {
 										  (isset($aFilter['exclude_type']) and count($aFilter['exclude_type']) ) ? $aFilter['exclude_type'] : DBSIMPLE_SKIP,
 										  isset($aFilter['url']) ? $aFilter['url'] : DBSIMPLE_SKIP,
 										  isset($aFilter['title']) ? $aFilter['title'] : DBSIMPLE_SKIP,
+										  (isset($aFilter['category_id']) and count($aFilter['category_id'])) ? $aFilter['category_id'] : DBSIMPLE_SKIP,
+										  (array_key_exists('category_id',$aFilter) and is_null($aFilter['category_id'])) ? 1 : DBSIMPLE_SKIP,
 										  ($iCurrPage-1)*$iPerPage, $iPerPage
 		)) {
 			foreach ($aRows as $aRow) {

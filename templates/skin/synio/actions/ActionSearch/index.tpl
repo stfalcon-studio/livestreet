@@ -1,16 +1,45 @@
-{include file='header.tpl'}
+{**
+ * Страница с формой поиска
+ *}
 
-<h2 class="page-header">{$aLang.search}</h2>
+{extends file='layouts/layout.base.tpl'}
 
-{hook run='search_begin'}
+{block name='layout_options'}
+	{$bNoSidebar = true}
+{/block}
 
-<form action="{router page='search'}topics/" class="search">
-	{hook run='search_form_begin'}
-	<input type="text" placeholder="{$aLang.search}" maxlength="255" name="q" class="input-text">
-	<input type="submit" value="" title="{$aLang.search_submit}" class="input-submit icon icon-search">
-	{hook run='search_form_end'}
-</form>
+{block name='layout_page_title'}{$aLang.search}{/block}
 
-{hook run='search_end'}
+{block name='layout_content'}
+	{include file='forms/form.search.main.tpl'}
 
-{include file='footer.tpl'}
+	{if $bIsResults}
+		<ul class="nav nav-pills">
+			{foreach $aRes.aCounts as $sType => $iCount}
+				<li {if $aReq.sType == $sType}class="active"{/if}>					
+					<a href="{router page='search'}{$sType}/?q={$aReq.q|escape:'html'}">
+						{$iCount} 
+
+						{if $sType=="topics"}
+							{$aLang.search_results_count_topics}
+						{elseif $sType=="comments"}
+							{$aLang.search_results_count_comments}
+						{else}
+							{hook run='search_result_item' sType=$sType}
+						{/if}
+					</a>
+				</li>				
+			{/foreach}
+		</ul>
+		
+		{if $aReq.sType == 'topics'}
+			{include file='topics/topic_list.tpl'}
+		{elseif $aReq.sType == 'comments'}
+			{include file='comments/comment_list.tpl'}
+		{else}
+			{hook run='search_result' sType=$aReq.sType}
+		{/if}
+	{elseif $aReq.q}
+		{$aLang.search_results_empty}
+	{/if}
+{/block}

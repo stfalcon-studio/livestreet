@@ -6,7 +6,7 @@ return array(
 		'cfgAllowTags' => array(
 			// вызов метода с параметрами
 			array(
-				array('ls','cut','a', 'img', 'i', 'b', 'u', 's', 'video', 'em',  'strong', 'nobr', 'li', 'ol', 'ul', 'sup', 'abbr', 'sub', 'acronym', 'h4', 'h5', 'h6', 'br', 'hr', 'pre', 'code', 'object', 'param', 'embed', 'blockquote', 'iframe','table','th','tr','td'),
+				array('ls','cut','a', 'img', 'i', 'b', 'u', 's', 'small', 'video', 'em', 'strong', 'nobr', 'li', 'ol', 'ul', 'sup', 'abbr', 'sub', 'acronym', 'h4', 'h5', 'h6', 'br', 'hr', 'pre', 'code', 'codeline', 'object', 'param', 'embed', 'blockquote', 'iframe','table','tbody','thead','th','tr','td'),
 			),			
 		),
 		// Коротие теги типа
@@ -18,7 +18,7 @@ return array(
 		// Преформатированные теги
 		'cfgSetTagPreformatted' => array(
 			array(
-				array('pre','code','video')
+				array('pre','code','codeline','video')
 			),
 		),
 		// Разрешённые параметры тегов
@@ -67,12 +67,77 @@ return array(
 				array('user'=>'#text')
 			),
 			array(
+				'th',
+				array('colspan'=>'#int','rowspan'=>'#int','align'=>array('right', 'left', 'center', 'justify'),'height'=>'#int','width'=>'#int')
+			),
+			array(
 				'td',
 				array('colspan'=>'#int','rowspan'=>'#int','align'=>array('right', 'left', 'center', 'justify'),'height'=>'#int','width'=>'#int')
 			),
 			array(
 				'table',
 				array('border'=>'#int','cellpadding'=>'#int','cellspacing'=>'#int','align'=>array('right', 'left', 'center'),'height'=>'#int','width'=>'#int')
+			),
+		),
+		// допустимые комбинации значений у параметров
+		'cfgSetTagParamCombination' => array(
+			array(
+				'param',
+				'name',
+				array(
+					'allowScriptAccess' => array(
+						'value'=>array('sameDomain'),
+					),
+					'movie' => array(
+						'value'=>array('#domain'=>array('youtube.com','rutube.ru','vimeo.com')),
+					),
+					'align' => array(
+						'value'=>array('bottom','middle','top','left','right'),
+					),
+					'base' => array(
+						'value'=>true,
+					),
+					'bgcolor' => array(
+						'value'=>true,
+					),
+					'border' => array(
+						'value'=>true,
+					),
+					'devicefont' => array(
+						'value'=>true,
+					),
+					'flashVars' => array(
+						'value'=>true,
+					),
+					'hspace' => array(
+						'value'=>true,
+					),
+					'quality' => array(
+						'value'=>array('low','medium','high','autolow','autohigh','best'),
+					),
+					'salign' => array(
+						'value'=>array('L','T','R','B','TL','TR','BL','BR'),
+					),
+					'scale' => array(
+						'value'=>array('scale','showall','noborder','exactfit'),
+					),
+					'tabindex' => array(
+						'value'=>true,
+					),
+					'title' => array(
+						'value'=>true,
+					),
+					'type' => array(
+						'value'=>true,
+					),
+					'vspace' => array(
+						'value'=>true,
+					),
+					'wmode' => array(
+						'value'=>array('window','opaque','transparent'),
+					),
+				),
+				true, // Удалять тег, если нет основного значения параметра в списке комбинаций
 			),
 		),
 		// Параметры тегов являющиеся обязательными
@@ -116,7 +181,19 @@ return array(
 			),
 			array(
 				'table',
-				array('tr'),
+				array('tr','tbody','thead'),
+				false,
+				true
+			),
+			array(
+				'tbody',
+				array('tr','td'),
+				false,
+				true
+			),
+			array(
+				'thead',
+				array('tr','th'),
 				false,
 				true
 			),
@@ -136,7 +213,7 @@ return array(
 		// Не нужна авто-расстановка <br>
 		'cfgSetTagNoAutoBr' => array(
 			array(
-				array('ul','ol','object','table','tr')
+				array('ul','ol','object','table','tr','tbody','thead')
 			)
 		),
 		// Теги с обязательными параметрами
@@ -161,6 +238,12 @@ return array(
 				array('±', '©', '©', '®', '©', '©', '®')
 			)
 		),
+		// Список допустимых протоколов для ссылок
+		'cfgSetLinkProtocolAllow' => array(
+			array(
+				array('http','https','ftp')
+			)
+		),
 		'cfgSetTagNoTypography' => array(			
 			array(
 				array('code','video','object')
@@ -169,7 +252,7 @@ return array(
 		// Теги, после которых необходимо пропускать одну пробельную строку
 		'cfgSetTagBlockType' => array(
 			array(
-				array('h4','h5','h6','ol','ul','blockquote','pre')
+				array('h4','h5','h6','ol','ul','blockquote','pre','table','iframe')
 			)
 		),
 		'cfgSetTagCallbackFull' => array(

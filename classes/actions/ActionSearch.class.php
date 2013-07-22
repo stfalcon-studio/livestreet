@@ -169,7 +169,7 @@ class ActionSearch extends Action {
 	 * @return array
 	 */
 	private function PrepareRequest(){
-		$aReq['q'] = getRequest('q');
+		$aReq['q'] = getRequestStr('q');
 		if (!func_check($aReq['q'],'text', 2, 255)) {
 			/**
 			 * Если запрос слишком короткий перенаправляем на начальную страницу поиска
@@ -250,7 +250,7 @@ class ActionSearch extends Action {
 			$this->Viewer_Assign('aPaging', $aPaging);
 		}
 
-		$this->SetTemplateAction('results');
+		$this->SetTemplateAction('index');
 		$this->Viewer_AddHtmlTitle($aReq['q']);
 		$this->Viewer_Assign('bIsResults', $this->bIsResults);
 		return $aRes;

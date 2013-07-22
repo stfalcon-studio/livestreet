@@ -1,11 +1,16 @@
-{if !$noShowSystemMessage}
+{**
+ * Системные сообщения
+ *}
+
+{if ! $bNoSystemMessages}
 	{if $aMsgError}
-		<ul class="system-message-error">
-			{foreach from=$aMsgError item=aMsg}
+		<ul class="alert alert-error">
+			{foreach $aMsgError as $aMsg}
 				<li>
-					{if $aMsg.title!=''}
+					{if $aMsg.title}
 						<strong>{$aMsg.title}</strong>:
 					{/if}
+
 					{$aMsg.msg}
 				</li>
 			{/foreach}
@@ -14,12 +19,13 @@
 
 
 	{if $aMsgNotice}
-		<ul class="system-message-notice">
-			{foreach from=$aMsgNotice item=aMsg}
+		<ul class="alert alert-success">
+			{foreach $aMsgNotice as $aMsg}
 				<li>
-					{if $aMsg.title!=''}
+					{if $aMsg.title}
 						<strong>{$aMsg.title}</strong>:
 					{/if}
+
 					{$aMsg.msg}
 				</li>
 			{/foreach}

@@ -1,6 +1,16 @@
-{include file='header.tpl'}
+{**
+ * Восстановление пароля.
+ * Пароль отправлен на емэйл пользователя.
+ *}
 
-<h2 class="page-header">{$aLang.password_reminder}</h2>
-{$aLang.password_reminder_send_password}
+{extends file='layouts/layout.base.tpl'}
 
-{include file='footer.tpl'}
+{block name='layout_options'}
+	{$bNoSidebar = true}
+{/block}
+
+{block name='layout_page_title'}{$aLang.password_reminder}{/block}
+
+{block name='layout_content'}
+	{$aLang.password_reminder_send_password}
+{/block}

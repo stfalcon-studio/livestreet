@@ -1,5 +1,15 @@
-{include file='header.tpl' menu='people'}
+{**
+ * Список пользователей которые недавно были на сайте
+ *}
 
-{include file='user_list.tpl' aUsersList=$aUsersLast}
+{extends file='layouts/layout.base.tpl'}
 
-{include file='footer.tpl'}
+{block name='layout_options'}
+	{$sNav = 'users'}
+{/block}
+
+{block name='layout_page_title'}{$aLang.user_list}{/block}
+
+{block name='layout_content'}
+	{include file='user_list.tpl' aUsersList=$aUsersLast}
+{/block}
