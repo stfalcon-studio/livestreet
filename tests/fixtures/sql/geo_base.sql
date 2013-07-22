@@ -1,1 +1,1 @@
-../../../install/geo_base.sql
+../../../install.dist/geo_base.sql

@@ -1,1 +1,1 @@
-../../../install/sql.sql
+../../../install.dist/sql.sql

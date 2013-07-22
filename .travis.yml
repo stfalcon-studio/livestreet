@@ -29,6 +29,8 @@ before_script:
   - sleep 5
 
   # get HTML of main page (for debug)
+  - mv ./install ./install.dist
+
   - firefox --version
   - wget -S http://livestreet.test -O /dev/null
 
