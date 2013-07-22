@@ -30,6 +30,9 @@ before_script:
 
   # get HTML of main page (for debug)
   - mv ./install ./install.dist
+  
+  - ls -la ./install.dist/
+  - ls -la ./tests/fixtures/sql/
 
   - firefox --version
   - wget -S http://livestreet.test -O /dev/null
