@@ -8,14 +8,14 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
     Then I want to login as "admin"
 
     Given I am on homepage
-    Then I follow "Sony MicroVault Mach USB 3.0 flash drive"
+    Then I am on "/blog/3.html"
 
     Then I wait "1000"
 
     Then I follow "Add comment"
     And I fill in "test comment" for "comment_text"
     And I press "Preview"
-    Then I wait "1000"
+    Then I wait "10000"
 
     Then I should see in element by css "content .comment-preview" values:
     | value |
