@@ -17,8 +17,8 @@ class CategoryFixtures extends AbstractFixtures
      */
     public function load()
     {
-        $oCategory = Engine::GetEntity('ModuleBlog_EntityBlogCategory');
-        $oBlogCategory = $this->_createCategory($oCategory);
+        $oBlogCategory = $this->_createCategory('First category name', 'first_category_url');
+
         $this->addReference('blog-category', $oBlogCategory);
     }
 }

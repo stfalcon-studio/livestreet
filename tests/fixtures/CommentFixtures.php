@@ -19,11 +19,10 @@ class CommentFixtures extends AbstractFixtures
     public function load()
     {
         $oUserFirst = $this->getReference('user-golfer');
-        $oBlogGadgets = $this->getReference('blog-gadgets');
+        //$oBlogGadgets = $this->getReference('blog-gadgets');
         $oTopic = $this->getReference('topic-toshiba');
 
-        $oTopicComment = $this->_createComment($oTopic, $oUserFirst, NULL, 'comment text',
-            'comment date');
+        $oTopicComment = $this->_createComment($oTopic, $oUserFirst, NULL, 'fixture comment text');
         $this->addReference('topic-toshiba-comment', $oTopicComment);
 
     }

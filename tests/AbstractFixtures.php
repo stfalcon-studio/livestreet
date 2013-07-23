@@ -147,7 +147,7 @@ abstract class AbstractFixtures
         $bValid = $oTopic->_Validate();
 
         if (!$bValid) {
-            throw new Exception("Invalid values");
+            throw new Exception("Create topic - validation error");
         }
 
         $this->oEngine->Topic_AddTopic($oTopic);
@@ -192,7 +192,7 @@ abstract class AbstractFixtures
      *
      * @return ModuleComment_EntityComment
      */
-    protected function _createComment($oTopic, $oUser, $sParentId = null, $sText = 'default comment text', $sDate = "now")
+    protected function _createComment($oTopic, $oUser, $sParentId = null, $sText = 'default comment text')
     {
         $oComment = Engine::GetEntity('Comment');
         $oComment->setTargetId($oTopic->getId());
@@ -214,18 +214,32 @@ abstract class AbstractFixtures
     /**
      * Create Blog Category
      *
-     * @param object $oCategory
+     * @param string $sTitle
+     * @param string $sUrl
+     * @param integer $iSort
+     * @param integer $iPid
+     *
+     * @throws Exception
      *
      * @return ModuleBlog_EntityBlogCategory
      */
-    protected function _createCategory($oCategory)
+    protected function _createCategory($sTitle, $sUrl, $iSort = 0, $iPid = null)
     {
-        $oCategory->setTitle('title');
-        $oCategory->setUrl('url');
-        $iCategoryId =  $this->oEngine->Blog_AddCategory($oCategory);
-        $oCategory = $this->oEngine->Blog_GetCategoryById($iCategoryId);
+        $oCategory = Engine::GetEntity('ModuleBlog_EntityBlogCategory');
+        $oCategory->setTitle($sTitle);
+        $oCategory->setUrl($sUrl);
+        $oCategory->setSort($iSort);
+        $oCategory->setPid($iPid);
 
-        return $oCategory;
+        if ($oCategory->_Validate()) {
+            $this->oEngine->Blog_AddCategory($oCategory);
+            $oCategory = $this->oEngine->Blog_GetCategoryById($oCategory);
+
+            return $oCategory;
+
+        } else {
+            throw new Exception("Create category - validation error");
+        }
     }
 }
 

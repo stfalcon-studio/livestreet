@@ -23,16 +23,13 @@ before_script:
   # launch apache, MySQL and PHPUnit Selenium installers
   - ./tests/travis/apache_setup.sh
   - ./tests/travis/mysql_setup.sh
+  - mysql -u root -e "USE social_test; SHOW TABLES;" | wc -l
   - cp ./config/config.test.php.dist config/config.test.php
   - cp ./config/config.test.php.dist config/config.local.php
   - sudo sed -i s/sql-mode/#sql-mode/ /etc/mysql/my.cnf
   - sudo /etc/init.d/mysql restart
-  - sleep 5
 
   # get HTML of main page (for debug)
-  
-  - ls -la ./install.dist/
-  - ls -la ./tests/fixtures/sql/
 
   - firefox --version
   - wget -S http://livestreet.test -O /dev/null
