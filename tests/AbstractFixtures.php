@@ -233,7 +233,7 @@ abstract class AbstractFixtures
 
         if ($oCategory->_Validate()) {
             $this->oEngine->Blog_AddCategory($oCategory);
-            $oCategory = $this->oEngine->Blog_GetCategoryById($oCategory);
+            $oCategory = $this->oEngine->Blog_GetCategoryById($oCategory->GetId());
 
             return $oCategory;
 
