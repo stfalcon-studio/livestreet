@@ -49,8 +49,6 @@ before_script:
   - wget -O /tmp/selenium-server-standalone.jar http://selenium.dev.stfalcon.com/selenium-server-standalone-latest.jar
   - java -jar /tmp/selenium-server-standalone.jar > /dev/null &
   - sleep 5
-  
-  - mysql -uroot 
 
 
 script: HTTP_APP_ENV=test php tests/behat/behat.phar -c tests/behat/behat.yml
