@@ -39,9 +39,6 @@ before_script:
   # start virtual display
   - sh -e /etc/init.d/xvfb start
   - sleep 5
-  
-  - mysql -u root -e "USE social_test; SHOW TABLES;"
-  - sleep 20
 
   # download and launch Selenium
   - wget -O /tmp/selenium-server-standalone.jar http://selenium.dev.stfalcon.com/selenium-server-standalone-latest.jar
