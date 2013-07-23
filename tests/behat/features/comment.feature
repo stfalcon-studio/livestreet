@@ -28,7 +28,7 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
       | value |
       | test comment |
 
-    Then I should see in element by css "content .comment-actions" values:
+    Then I should see in element by css "content .comment-info .comment-author " values:
       | value |
       | /profile/admin/">admin</a> |
       | Reply |
