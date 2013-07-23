@@ -23,7 +23,7 @@ class BlogFixtures extends AbstractFixtures
         $oBlogGadgets->setDateAdd(date("Y-m-d H:i:s")); // @todo freeze
         $oBlogGadgets->setUrl('gadgets');
         $oBlogGadgets->setLimitRatingTopic(0);
-        $oBlogGadgets->setCategoryId($this->getReference('blog-category'));
+        $oBlogGadgets->setCategoryId($this->getReference('blog-category')->getCategoryId());
 
         $this->oEngine->Blog_AddBlog($oBlogGadgets);
 
