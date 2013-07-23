@@ -1,17 +1,15 @@
-{include file='header.tpl' menu="stream"}
+{**
+ * Настраиваемая, персональная страница активности
+ *}
 
-{if count($aStreamEvents)}
-	<ul class="stream-list" id="stream-list">
-		{include file='actions/ActionStream/events.tpl'}
-	</ul>
+{extends file='layouts/layout.base.tpl'}
 
-    {if !$bDisableGetMoreButton}
-        <input type="hidden" id="stream_last_id" value="{$iStreamLastId}" />
-        <a class="stream-get-more" id="stream_get_more" href="javascript:ls.stream.getMore()">{$aLang.stream_get_more} &darr;</a>
-    {/if}
-{else}
-    {$aLang.stream_no_events}
-{/if}
+{block name='layout_options'}
+	{$sNav = 'activity'}
+{/block}
 
+{block name='layout_page_title'}{$aLang.stream_menu}{/block}
 
-{include file='footer.tpl'}
+{block name='layout_content'}
+	{include file='actions/ActionStream/event_list.tpl' sActivityType=''}
+{/block}

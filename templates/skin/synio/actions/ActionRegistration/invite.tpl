@@ -1,18 +1,15 @@
-{assign var="noSidebar" value=true}
-{include file='header.tpl'}
+{**
+ * Регистрация через инвайт
+ *}
 
+{extends file='layouts/layout.base.tpl'}
 
+{block name='layout_options'}
+	{$bNoSidebar = true}
+{/block}
 
-<h2 class="page-header">{$aLang.registration_invite}</h2>
+{block name='layout_page_title'}{$aLang.registration_invite}{/block}
 
-
-<form action="{router page='registration'}invite/" method="POST">
-	<p><label>{$aLang.registration_invite_code}:</label>
-	<input type="text" name="invite_code" class="input-text input-width-300" /></p>
-
-	<input type="submit" name="submit_invite" value="{$aLang.registration_invite_check}" class="button" />
-</form>
-
-
-
-{include file='footer.tpl'}
+{block name='layout_content'}
+	{include file='forms/form.auth.invite.tpl'}
+{/block}

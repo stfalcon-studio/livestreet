@@ -1,3 +1,13 @@
-{include file='header.tpl' menu='blog'}
-{include file='topic_list.tpl'}
-{include file='footer.tpl'}
+{**
+ * Главная
+ *}
+
+{extends file='layouts/layout.base.tpl'}
+
+{block name='layout_options'}
+	{$sNav = 'topics'}
+{/block}
+
+{block name='layout_content'}
+	{include file='topics/topic_list.tpl'}
+{/block}

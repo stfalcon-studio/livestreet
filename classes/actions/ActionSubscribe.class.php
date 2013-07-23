@@ -88,7 +88,7 @@ class ActionSubscribe extends Action {
 		/**
 		 * Получаем емайл подписки и проверяем его на валидность
 		 */
-		$sMail=getRequest('mail');
+		$sMail=getRequestStr('mail');
 		if ($this->oUserCurrent) {
 			$sMail=$this->oUserCurrent->getMail();
 		}
@@ -99,12 +99,12 @@ class ActionSubscribe extends Action {
 		/**
 		 * Получаем тип объекта подписки
 		 */
-		$sTargetType=getRequest('target_type');
+		$sTargetType=getRequestStr('target_type');
 		if (!$this->Subscribe_IsAllowTargetType($sTargetType)) {
 			$this->Message_AddError($this->Lang_Get('system_error'),$this->Lang_Get('error'));
 			return ;
 		}
-		$sTargetId=getRequest('target_id') ? getRequest('target_id') : null;
+		$sTargetId=getRequestStr('target_id') ? getRequestStr('target_id') : null;
 		$iValue=getRequest('value') ? 1 : 0;
 
 		$oSubscribe=null;
@@ -125,7 +125,7 @@ class ActionSubscribe extends Action {
 		/**
 		 * Если подписка еще не существовала, то создаем её
 		 */
-		if ($oSubscribe=$this->Subscribe_AddSubscribeSimple($sTargetType,$sTargetId,$sMail)) {
+		if ($oSubscribe=$this->Subscribe_AddSubscribeSimple($sTargetType,$sTargetId,$sMail,$this->oUserCurrent ? $this->oUserCurrent->getId() : null)) {
 			$oSubscribe->setStatus($iValue);
 			$this->Subscribe_UpdateSubscribe($oSubscribe);
 			$this->Message_AddNotice($this->Lang_Get('subscribe_change_ok'),$this->Lang_Get('attention'));

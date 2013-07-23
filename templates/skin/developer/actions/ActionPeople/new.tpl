@@ -1,5 +1,15 @@
-{include file='header.tpl' menu='people'}
+{**
+ * Список новых пользователей
+ *}
 
-{include file='user_list.tpl' aUsersList=$aUsersRegister}
+{extends file='layouts/layout.base.tpl'}
 
-{include file='footer.tpl'}
+{block name='layout_options'}
+	{$sNav = 'users'}
+{/block}
+
+{block name='layout_page_title'}{$aLang.user_list}{/block}
+
+{block name='layout_content'}
+	{include file='user_list.tpl' aUsersList=$aUsersRegister}
+{/block}

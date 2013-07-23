@@ -1,7 +1,21 @@
-{include file='header.tpl'}
+{**
+ * Список пользователей из определенного города
+ *}
 
-<h2 class="page-header">{$aLang.user_list}: <span>{$oCity->getName()|escape:'html'}{if $aPaging} ({$aPaging.iCount}){/if}</span></h2>
+{extends file='layouts/layout.base.tpl'}
 
-{include file='user_list.tpl' aUsersList=$aUsersCity}
+{block name='layout_page_title'}
+	{$aLang.user_list}: 
 
-{include file='footer.tpl'}
+	<span>
+		{$oCity->getName()|escape:'html'}
+		
+		{if $aPaging} 
+			({$aPaging.iCount})
+		{/if}
+	</span>
+{/block}
+
+{block name='layout_content'}
+	{include file='user_list.tpl' aUsersList=$aUsersCity}
+{/block}

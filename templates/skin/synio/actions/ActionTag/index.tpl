@@ -1,10 +1,12 @@
-{include file='header.tpl'}
+{**
+ * Поиск по тегам
+ *}
 
+{extends file='layouts/layout.base.tpl'}
 
-<form action="" method="GET" class="js-tag-search-form search-tags">
-	<input type="text" name="tag" placeholder="{$aLang.block_tags_search}" value="{$sTag|escape:'html'}" class="input-text input-width-full autocomplete-tags js-tag-search" />
-</form>
+{block name='layout_page_title'}{$aLang.block_tags_search}{/block}
 
-
-{include file='topic_list.tpl'}
-{include file='footer.tpl'}
+{block name='layout_content'}
+	{include file='forms/form.search.tags.tpl'}
+	{include file='topics/topic_list.tpl'}
+{/block}

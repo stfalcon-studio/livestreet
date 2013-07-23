@@ -107,6 +107,12 @@ class Engine extends LsObject {
 	const CI_BLOCK = 256;
 
 	/**
+	 * Имя обработчика евента
+	 * @var int
+	 */
+	const CI_EVENT = 512;
+
+	/**
 	 * Префикс плагина
 	 * @var int
 	 */
@@ -139,10 +145,10 @@ class Engine extends LsObject {
 
 	/**
 	 * Объекты
-	 * CI_ACTION | CI_MAPPER | CI_HOOK | CI_PLUGIN | CI_ACTION | CI_MODULE | CI_ENTITY | CI_BLOCK
+	 * CI_ACTION | CI_MAPPER | CI_HOOK | CI_PLUGIN | CI_EVENT | CI_MODULE | CI_ENTITY | CI_BLOCK
 	 * @var int
 	 */
-	const CI_OBJECT = 351 ;
+	const CI_OBJECT = 863 ;
 
 	/**
 	 * Текущий экземпляр движка, используется для синглтона.
@@ -930,6 +936,12 @@ class Engine extends LsObject {
 				: null
 			;
 		}
+		if($iFlag & self::CI_EVENT){
+			$aResult[self::CI_EVENT] = preg_match('/_Event([^_]+)/',$sClassName,$aMatches)
+				? $aMatches[1]
+				: null
+			;
+		}
 		if($iFlag & self::CI_METHOD){
 			$sModuleName = isset($aResult[self::CI_MODULE])
 				? $aResult[self::CI_MODULE]
@@ -1026,6 +1038,19 @@ class Engine extends LsObject {
 				if(!is_file($sPath)){
 					$sPath = str_replace('/classes/modules/','/engine/modules/',$sPath);
 				}
+			}
+		}elseif($aInfo[self::CI_EVENT]){
+			// Евент
+			if($aInfo[self::CI_PLUGIN]){
+				// Евент плагина
+				$sPath .= 'plugins/'.func_underscore($aInfo[self::CI_PLUGIN])
+					.'/classes/actions/'.lcfirst($aInfo[self::CI_ACTION]).'/Event'.$aInfo[self::CI_EVENT].'.class.php'
+				;
+			}else{
+				// Евент ядра
+				$sPath .= 'classes/actions/'.lcfirst($aInfo[self::CI_ACTION]).'/Event'
+					.$aInfo[self::CI_EVENT].'.class.php'
+				;
 			}
 		}elseif($aInfo[self::CI_ACTION]){
 			// Экшн
@@ -1156,7 +1181,7 @@ class LS extends LsObject {
 	 *
 	 * @return Engine
 	 */
-	public function E() {
+	static public function E() {
 		return Engine::GetInstance();
 	}
 	/**
@@ -1167,7 +1192,7 @@ class LS extends LsObject {
 	 * @param array $aParams	Параметры для передачи в конструктор
 	 * @return Entity
 	 */
-	public function Ent($sName,$aParams=array()) {
+	static public function Ent($sName,$aParams=array()) {
 		return Engine::GetEntity($sName,$aParams);
 	}
 	/**
@@ -1179,7 +1204,7 @@ class LS extends LsObject {
 	 * @param DbSimple_Mysql|null $oConnect	Объект коннекта к БД
 	 * @return mixed
 	 */
-	public function Mpr($sClassName,$sName=null,$oConnect=null) {
+	static public function Mpr($sClassName,$sName=null,$oConnect=null) {
 		return Engine::GetMapper($sClassName,$sName,$oConnect);
 	}
 	/**
@@ -1188,7 +1213,7 @@ class LS extends LsObject {
 	 *
 	 * @return ModuleUser_EntityUser
 	 */
-	public function CurUsr() {
+	static public function CurUsr() {
 		return self::E()->User_GetUserCurrent();
 	}
 	/**
@@ -1198,7 +1223,7 @@ class LS extends LsObject {
 	 *
 	 * @return bool
 	 */
-	public function Adm() {
+	static public function Adm() {
 		return self::CurUsr() && self::CurUsr()->isAdministrator();
 	}
 	/**
