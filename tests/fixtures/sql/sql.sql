@@ -1,1 +1,0 @@
-../../../install.dist/sql.sql
