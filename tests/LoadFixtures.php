@@ -45,8 +45,6 @@ class LoadFixtures
     public function purgeDB() {
         $sDbname = Config::Get('db.params.dbname');
 
-        echo '-----------' . $sDbname;
-
         if (mysql_select_db($sDbname)) {
 
             $result = mysql_query("SELECT concat('TRUNCATE TABLE ', TABLE_NAME)
