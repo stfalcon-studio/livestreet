@@ -5,12 +5,17 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 class CommentFixtures extends AbstractFixtures
 {
 
-    protected $aActivePlugins = array();
+    /**
+     * @return int
+     */
     public static function getOrder()
     {
-        return 3;
+        return 4;
     }
 
+    /**
+     * Create Comment
+     */
     public function load()
     {
         $oUserFirst = $this->getReference('user-golfer');

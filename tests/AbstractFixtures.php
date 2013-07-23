@@ -18,6 +18,8 @@ abstract class AbstractFixtures
      */
     private $aReferences = array();
 
+    private $aActivePlugins = array();
+
     /**
      * @param Engine $oEngine
      * @param array $aReferences
@@ -27,6 +29,7 @@ abstract class AbstractFixtures
     {
         $this->oEngine = $oEngine;
         $this->aReferences = $aReferences;
+        $this->aActivePlugins = $oEngine->Plugin_GetActivePlugins();
     }
 
     /**
@@ -80,8 +83,19 @@ abstract class AbstractFixtures
      *
      * @return int
      */
-    public static function getOrder() {
+    public static function getOrder()
+    {
         return 0;
+    }
+
+    /**
+     * Get Active Plugins
+     *
+     * @return Active Plugins
+     */
+    protected function getActivePlugins()
+    {
+        return $this->aActivePlugins;
     }
 
     /**
@@ -97,12 +111,12 @@ abstract class AbstractFixtures
      * @param bool $bPublishMain
      * @param bool $bPublishDraft
      *
+     * @throws Exception
+     *
      * @return ModuleTopic_EntityTopic
      */
     protected function _createTopic($iBlogId, $iUserId, $sTitle, $sText, $sTags, $sDate, $bPublish = true, $bPublishMain = true, $bPublishDraft = true)
     {
-        $this->aActivePlugins = $this->oEngine->Plugin_GetActivePlugins();
-
         $oTopic = Engine::GetEntity('Topic');
         /* @var $oTopic ModuleTopic_EntityTopic */
         $oTopic->setBlogId($iBlogId);
@@ -125,7 +139,7 @@ abstract class AbstractFixtures
         $oTopic->setTextHash(md5($oTopic->getType() . $oTopic->getTextSource() . $oTopic->getTitle()));
         $oTopic->setTags($sTags);
         //with active plugin l10n added a field topic_lang
-        if (in_array('l10n', $this->aActivePlugins)) {
+        if (in_array('l10n', $this->getActivePlugins())) {
             $oTopic->setTopicLang(Config::Get('lang.current'));
         }
         // @todo refact this
@@ -180,8 +194,6 @@ abstract class AbstractFixtures
      */
     protected function _createComment($oTopic, $oUser, $sParentId = null, $sText = 'default comment text', $sDate = "now")
     {
-        $this->aActivePlugins = $this->oEngine->Plugin_GetActivePlugins();
-
         $oComment = Engine::GetEntity('Comment');
         $oComment->setTargetId($oTopic->getId());
         $oComment->setTargetType('topic');
@@ -197,6 +209,23 @@ abstract class AbstractFixtures
         $oComment = $this->oEngine->Comment_AddComment($oComment);
 
         return $oComment;
+    }
+
+    /**
+     * Create Blog Category
+     *
+     * @param object $oCategory
+     *
+     * @return ModuleBlog_EntityBlogCategory
+     */
+    protected function _createCategory($oCategory)
+    {
+        $oCategory->setTitle('title');
+        $oCategory->setUrl('url');
+        $iCategoryId =  $this->oEngine->Blog_AddCategory($oCategory);
+        $oCategory = $this->oEngine->Blog_GetCategoryById($iCategoryId);
+
+        return $oCategory;
     }
 }
 
