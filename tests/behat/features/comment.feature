@@ -57,9 +57,10 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
     And I follow "Reply"
     Then I wait "1000"
     And I fill in "test subcomment" for "comment_text"
+
     And I press "Add"
     Then I wait "100"
 
-    Then I should see in element by css "content .comments .comment_wrapper_id_2 .comment_content_id_2" values:
+    Then I should see in element by css "comment_content_id_2" values:
       | value |
       | test subcomment |
