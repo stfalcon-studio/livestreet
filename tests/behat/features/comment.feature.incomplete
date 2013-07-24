@@ -9,15 +9,6 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
 
     Given I am on homepage
     Given I am on "/blog/3.html"
-    ############################################
-    #                                          #
-    #           HERE SHOULD BE                 #
-    # Sony MicroVault Mach USB 3.0 flash drive #
-    #                                          #
-    #      selenium has lost session - bug     #
-    #                                          #
-    ############################################
-
     Then I follow "Add comment"
     And I fill in "test comment" for "comment_text"
     And I press "Preview"
@@ -53,8 +44,6 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
     Then I should see in element by css "content .comment-wrapper .comment-actions" values:
       | value |
       | Reply |
-
-    @wip
 
     And I follow "Reply"
     Then I wait "1000"
