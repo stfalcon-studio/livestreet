@@ -192,7 +192,7 @@ abstract class AbstractFixtures
      *
      * @return ModuleComment_EntityComment
      */
-    protected function _createComment($oTopic, $oUser, $sParentId = null, $sText = 'default comment text')
+    protected function _createComment($oTopic, $oUser, $sParentId = null, $sText = 'fixture comment text')
     {
         $oComment = Engine::GetEntity('Comment');
         $oComment->setTargetId($oTopic->getId());
