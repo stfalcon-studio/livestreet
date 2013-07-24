@@ -4,13 +4,21 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 
 class TopicFixtures extends AbstractFixtures
 {
-
-    protected $aActivePlugins = array();
+    /**
+     * @return int
+     */
     public static function getOrder()
     {
-        return 2;
+        return 3;
     }
 
+    /**
+     * Create Topics:
+     * Toshiba unveils 13.3-inch AT330 Android ICS 4.0 tablet,
+     * iPad 3 rumored to come this March with quad-core chip and 4G LTE,
+     * Sony MicroVault Mach USB 3.0 flash drive,
+     * Draft Topic
+     */
     public function load()
     {
         $oUserFirst = $this->getReference('user-golfer');

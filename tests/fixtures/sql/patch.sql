@@ -1,1 +1,0 @@
-../../../install.dist/patch.sql

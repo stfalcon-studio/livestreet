@@ -5,20 +5,23 @@ require_once(realpath((dirname(__FILE__)) . "/../AbstractFixtures.php"));
 class CommentFixtures extends AbstractFixtures
 {
 
-    protected $aActivePlugins = array();
+    /**
+     * @return int
+     */
     public static function getOrder()
     {
-        return 3;
+        return 4;
     }
 
+    /**
+     * Create Comment
+     */
     public function load()
     {
         $oUserFirst = $this->getReference('user-golfer');
-        $oBlogGadgets = $this->getReference('blog-gadgets');
         $oTopic = $this->getReference('topic-toshiba');
 
-        $oTopicComment = $this->_createComment($oTopic, $oUserFirst, NULL, 'comment text',
-            'comment date');
+        $oTopicComment = $this->_createComment($oTopic, $oUserFirst, NULL, 'fixture comment text');
         $this->addReference('topic-toshiba-comment', $oTopicComment);
 
     }

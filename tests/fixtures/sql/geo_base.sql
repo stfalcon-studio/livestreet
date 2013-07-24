@@ -1,1 +1,0 @@
-../../../install.dist/geo_base.sql
