@@ -8,9 +8,7 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
     Then I want to login as "admin"
 
     Given I am on homepage
-    Then I follow "Sony MicroVault Mach USB 3.0 flash drive"
-
-    Then I wait "1000"
+    Given I am on "/blog/3.html"
 
     Then I follow "Add comment"
     And I fill in "test comment" for "comment_text"
@@ -28,19 +26,10 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
       | value |
       | test comment |
 
-    Then I should see in element by css "content .comment-info" values:
+    Then I should see in element by css "content .comment-author" values:
       | value |
       | /profile/admin/">admin</a> |
+    Then I should see in element by css "content .comment-actions" values:
+      | value |
       | Reply |
       | Delete |
-
-    #create subcomment
-    And I follow "Reply"
-    Then I wait "1000"
-    And I fill in "test subcomment" for "comment_text"
-    And I press "Add"
-    Then I wait "1000"
-
-    Then I should see in element by css "comment_wrapper_id_2" values:
-      | value |
-      | test subcomment |
