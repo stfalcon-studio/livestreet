@@ -60,6 +60,8 @@ Feature: Test Base comment functionality (!!!SELENIUM NEEDED)
 
     And I press "Add"
     Then I wait "100"
+    
+    Then print last response
 
     Then I should see in element by css "comment_content_id_2" values:
       | value |
